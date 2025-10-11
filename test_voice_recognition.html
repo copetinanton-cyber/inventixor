@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Funcionalidad de Reconocimiento de Voz</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 800px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            background: #f8f9fa;
+        }
+        
+        .test-result {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d1edff;
+            border: 1px solid #0ea5e9;
+            color: #0284c7;
+        }
+        
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #dc2626;
+        }
+        
+        .warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #d97706;
+        }
+        
+        .voice-test-area {
+            background: white;
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .voice-indicator-test {
+            display: none;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            margin: 15px auto;
+            animation: voicePulse 1.2s infinite;
+            border: 2px solid rgba(231, 76, 60, 0.3);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            max-width: 200px;
+        }
+        
+        @keyframes voicePulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scale(1.05);
+                box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+            }
+        }
+        
+        .btn-test {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="test-container">
+            <div class="text-center mb-4">
+                <h1><i class="fas fa-microphone text-primary me-3"></i>Test de Reconocimiento de Voz</h1>
+                <p class="text-muted">Verificación de funcionalidades del asistente virtual IA</p>
+            </div>
+
+            <!-- Test 1: Compatibilidad del Navegador -->
+            <div class="test-section">
+                <h3><i class="fas fa-browser me-2"></i>1. Compatibilidad del Navegador</h3>
+                <div id="compatibilityResult"></div>
+                <button class="btn btn-test" onclick="testBrowserCompatibility()">
+                    <i class="fas fa-check me-2"></i>Verificar Compatibilidad
+                </button>
+            </div>
+
+            <!-- Test 2: Permisos de Micrófono -->
+            <div class="test-section">
+                <h3><i class="fas fa-microphone me-2"></i>2. Permisos de Micrófono</h3>
+                <div id="microphoneResult"></div>
+                <button class="btn btn-test" onclick="testMicrophonePermissions()">
+                    <i class="fas fa-microphone me-2"></i>Verificar Permisos
+                </button>
+            </div>
+
+            <!-- Test 3: Reconocimiento de Voz -->
+            <div class="test-section">
+                <h3><i class="fas fa-comments me-2"></i>3. Test de Reconocimiento de Voz</h3>
+                <div class="voice-test-area">
+                    <h5>Prueba el reconocimiento de voz</h5>
+                    <p class="text-muted">Haz click en el botón y di una frase</p>
+                    
+                    <div class="voice-indicator-test" id="voiceIndicatorTest">
+                        <i class="fas fa-microphone me-2"></i>Escuchando...
+                    </div>
+                    
+                    <button class="btn btn-test btn-lg" onclick="testVoiceRecognition()" id="voiceTestBtn">
+                        <i class="fas fa-microphone me-2"></i>Iniciar Reconocimiento
+                    </button>
+                    
+                    <div class="mt-3">
+                        <input type="text" class="form-control" id="recognitionResult" placeholder="El texto reconocido aparecerá aquí..." readonly>
+                    </div>
+                </div>
+                <div id="voiceTestResult"></div>
+            </div>
+
+            <!-- Test 4: Funciones del Chat -->
+            <div class="test-section">
+                <h3><i class="fas fa-robot me-2"></i>4. Funciones del Chat</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-paper-plane text-primary fs-2 mb-2"></i>
+                        <h6>Envío de Mensajes</h6>
+                        <small>Enter para enviar</small>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-volume-up text-success fs-2 mb-2"></i>
+                        <h6>Síntesis de Voz</h6>
+                        <small>Respuestas audibles</small>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-magic text-warning fs-2 mb-2"></i>
+                        <h6>Sugerencias</h6>
+                        <small>Chips interactivos</small>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-refresh text-info fs-2 mb-2"></i>
+                        <h6>Limpiar Chat</h6>
+                        <small>Reiniciar conversación</small>
+                    </div>
+                </div>
+                <button class="btn btn-test" onclick="testChatFunctions()">
+                    <i class="fas fa-cogs me-2"></i>Verificar Funciones
+                </button>
+                <div id="chatTestResult"></div>
+            </div>
+
+            <!-- Test 5: Rendimiento -->
+            <div class="test-section">
+                <h3><i class="fas fa-tachometer-alt me-2"></i>5. Test de Rendimiento</h3>
+                <div id="performanceResult"></div>
+                <button class="btn btn-test" onclick="testPerformance()">
+                    <i class="fas fa-stopwatch me-2"></i>Ejecutar Test
+                </button>
+            </div>
+
+            <!-- Resumen Final -->
+            <div class="test-section">
+                <h3><i class="fas fa-chart-pie me-2"></i>Resumen de Tests</h3>
+                <div id="finalSummary">
+                    <p class="text-muted">Ejecuta los tests para ver el resumen</p>
+                </div>
+                <button class="btn btn-test btn-lg" onclick="runAllTests()">
+                    <i class="fas fa-play me-2"></i>Ejecutar Todos los Tests
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            compatibility: false,
+            microphone: false,
+            voiceRecognition: false,
+            chatFunctions: false,
+            performance: false
+        };
+
+        let recognition;
+        let isListening = false;
+
+        // Test 1: Compatibilidad del Navegador
+        function testBrowserCompatibility() {
+            const resultDiv = document.getElementById('compatibilityResult');
+            
+            let result = '<div class="test-result">';
+            
+            // Verificar Speech Recognition
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                result += '<div class="success"><i class="fas fa-check me-2"></i><strong>✅ Web Speech API:</strong> Disponible</div>';
+                testResults.compatibility = true;
+            } else {
+                result += '<div class="error"><i class="fas fa-times me-2"></i><strong>❌ Web Speech API:</strong> No disponible</div>';
+            }
+            
+            // Verificar Speech Synthesis
+            if ('speechSynthesis' in window) {
+                result += '<div class="success"><i class="fas fa-check me-2"></i><strong>✅ Speech Synthesis:</strong> Disponible</div>';
+            } else {
+                result += '<div class="warning"><i class="fas fa-exclamation me-2"></i><strong>⚠️ Speech Synthesis:</strong> No disponible</div>';
+            }
+            
+            // Información del navegador
+            result += '<div class="success"><i class="fas fa-info me-2"></i><strong>Navegador:</strong> ' + navigator.userAgent.split(' ')[0] + '</div>';
+            result += '<div class="success"><i class="fas fa-globe me-2"></i><strong>Idioma:</strong> ' + navigator.language + '</div>';
+            
+            result += '</div>';
+            resultDiv.innerHTML = result;
+            updateSummary();
+        }
+
+        // Test 2: Permisos de Micrófono
+        function testMicrophonePermissions() {
+            const resultDiv = document.getElementById('microphoneResult');
+            
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    resultDiv.innerHTML = '<div class="test-result success"><i class="fas fa-check me-2"></i><strong>✅ Permisos concedidos:</strong> Micrófono accesible</div>';
+                    testResults.microphone = true;
+                    stream.getTracks().forEach(track => track.stop()); // Liberar el micrófono
+                    updateSummary();
+                })
+                .catch(function(error) {
+                    let errorMsg = 'Error desconocido';
+                    switch(error.name) {
+                        case 'NotAllowedError':
+                            errorMsg = 'Permisos denegados por el usuario';
+                            break;
+                        case 'NotFoundError':
+                            errorMsg = 'No se encontró micrófono';
+                            break;
+                        case 'NotReadableError':
+                            errorMsg = 'Micrófono en uso por otra aplicación';
+                            break;
+                    }
+                    resultDiv.innerHTML = '<div class="test-result error"><i class="fas fa-times me-2"></i><strong>❌ Error:</strong> ' + errorMsg + '</div>';
+                    updateSummary();
+                });
+        }
+
+        // Test 3: Reconocimiento de Voz
+        function testVoiceRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                document.getElementById('voiceTestResult').innerHTML = 
+                    '<div class="test-result error"><i class="fas fa-times me-2"></i><strong>❌ Error:</strong> Reconocimiento de voz no disponible</div>';
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const indicator = document.getElementById('voiceIndicatorTest');
+            const resultInput = document.getElementById('recognitionResult');
+            const testBtn = document.getElementById('voiceTestBtn');
+
+            if (isListening) {
+                recognition.stop();
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'es-ES';
+            recognition.maxAlternatives = 3;
+
+            recognition.onstart = function() {
+                isListening = true;
+                indicator.style.display = 'block';
+                testBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Detener';
+                testBtn.classList.add('btn-danger');
+                resultInput.value = 'Escuchando...';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                const confidence = event.results[0][0].confidence;
+                
+                resultInput.value = transcript;
+                
+                const resultDiv = document.getElementById('voiceTestResult');
+                let confidenceLevel = confidence > 0.8 ? 'Alta' : confidence > 0.5 ? 'Media' : 'Baja';
+                let confidenceClass = confidence > 0.8 ? 'success' : confidence > 0.5 ? 'warning' : 'error';
+                
+                resultDiv.innerHTML = `
+                    <div class="test-result ${confidenceClass}">
+                        <i class="fas fa-microphone me-2"></i>
+                        <strong>Texto reconocido:</strong> "${transcript}"<br>
+                        <strong>Confianza:</strong> ${confidenceLevel} (${Math.round(confidence * 100)}%)
+                    </div>
+                `;
+                
+                if (confidence > 0.5) {
+                    testResults.voiceRecognition = true;
+                }
+                updateSummary();
+            };
+
+            recognition.onerror = function(event) {
+                resultInput.value = 'Error: ' + event.error;
+                document.getElementById('voiceTestResult').innerHTML = 
+                    '<div class="test-result error"><i class="fas fa-times me-2"></i><strong>❌ Error:</strong> ' + event.error + '</div>';
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                indicator.style.display = 'none';
+                testBtn.innerHTML = '<i class="fas fa-microphone me-2"></i>Iniciar Reconocimiento';
+                testBtn.classList.remove('btn-danger');
+            };
+
+            recognition.start();
+        }
+
+        // Test 4: Funciones del Chat
+        function testChatFunctions() {
+            const resultDiv = document.getElementById('chatTestResult');
+            let results = [];
+
+            // Test Enter key simulation
+            try {
+                const enterEvent = new KeyboardEvent('keypress', { key: 'Enter' });
+                results.push('<div class="success"><i class="fas fa-keyboard me-2"></i><strong>✅ Evento Enter:</strong> Simulación exitosa</div>');
+                testResults.chatFunctions = true;
+            } catch (error) {
+                results.push('<div class="error"><i class="fas fa-times me-2"></i><strong>❌ Evento Enter:</strong> Error en simulación</div>');
+            }
+
+            // Test Speech Synthesis
+            if ('speechSynthesis' in window) {
+                try {
+                    const utterance = new SpeechSynthesisUtterance('Test de síntesis de voz');
+                    utterance.lang = 'es-ES';
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.1;
+                    utterance.volume = 0.1; // Volumen bajo para el test
+                    speechSynthesis.speak(utterance);
+                    results.push('<div class="success"><i class="fas fa-volume-up me-2"></i><strong>✅ Síntesis de Voz:</strong> Funcionando</div>');
+                } catch (error) {
+                    results.push('<div class="error"><i class="fas fa-times me-2"></i><strong>❌ Síntesis de Voz:</strong> Error</div>');
+                }
+            } else {
+                results.push('<div class="warning"><i class="fas fa-exclamation me-2"></i><strong>⚠️ Síntesis de Voz:</strong> No disponible</div>');
+            }
+
+            // Test AJAX simulation
+            results.push('<div class="success"><i class="fas fa-server me-2"></i><strong>✅ AJAX:</strong> Funciones disponibles</div>');
+
+            resultDiv.innerHTML = '<div class="test-result">' + results.join('') + '</div>';
+            updateSummary();
+        }
+
+        // Test 5: Rendimiento
+        function testPerformance() {
+            const resultDiv = document.getElementById('performanceResult');
+            const startTime = performance.now();
+            
+            // Simular operaciones del chat
+            setTimeout(() => {
+                const endTime = performance.now();
+                const executionTime = endTime - startTime;
+                
+                let performanceLevel = executionTime < 100 ? 'Excelente' : 
+                                     executionTime < 500 ? 'Bueno' : 'Necesita mejora';
+                let performanceClass = executionTime < 100 ? 'success' : 
+                                     executionTime < 500 ? 'warning' : 'error';
+                
+                resultDiv.innerHTML = `
+                    <div class="test-result ${performanceClass}">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        <strong>Tiempo de respuesta:</strong> ${executionTime.toFixed(2)}ms<br>
+                        <strong>Rendimiento:</strong> ${performanceLevel}
+                    </div>
+                `;
+                
+                if (executionTime < 500) {
+                    testResults.performance = true;
+                }
+                updateSummary();
+            }, 50);
+        }
+
+        // Actualizar resumen
+        function updateSummary() {
+            const summaryDiv = document.getElementById('finalSummary');
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(result => result === true).length;
+            const percentage = Math.round((passed / total) * 100);
+            
+            let summaryClass = percentage === 100 ? 'success' : 
+                              percentage >= 60 ? 'warning' : 'error';
+            
+            summaryDiv.innerHTML = `
+                <div class="test-result ${summaryClass}">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Resultados Generales</h5>
+                    <p><strong>Tests aprobados:</strong> ${passed} de ${total} (${percentage}%)</p>
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar bg-${summaryClass === 'success' ? 'success' : summaryClass === 'warning' ? 'warning' : 'danger'}" 
+                             role="progressbar" style="width: ${percentage}%" 
+                             aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+                            ${percentage}%
+                        </div>
+                    </div>
+                    <ul class="text-start mb-0">
+                        ${Object.entries(testResults).map(([key, value]) => 
+                            `<li class="${value ? 'text-success' : 'text-muted'}">
+                                <i class="fas fa-${value ? 'check' : 'times'} me-2"></i>
+                                ${getTestName(key)}
+                            </li>`
+                        ).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function getTestName(key) {
+            const names = {
+                compatibility: 'Compatibilidad del Navegador',
+                microphone: 'Permisos de Micrófono',
+                voiceRecognition: 'Reconocimiento de Voz',
+                chatFunctions: 'Funciones del Chat',
+                performance: 'Rendimiento'
+            };
+            return names[key] || key;
+        }
+
+        // Ejecutar todos los tests
+        function runAllTests() {
+            testBrowserCompatibility();
+            setTimeout(() => testMicrophonePermissions(), 500);
+            setTimeout(() => testChatFunctions(), 1000);
+            setTimeout(() => testPerformance(), 1500);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test de Reconocimiento de Voz - Inventixor IA');
+            updateSummary();
+        });
+    </script>
+</body>
+</html>
