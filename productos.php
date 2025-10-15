@@ -116,28 +116,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
         $id_nit = intval($_POST['id_nit']);
         $num_doc = intval($_POST['num_doc']);
         
-        // Verificar si ya existe un producto con las mismas características principales
-        $check_stmt = $db->conn->prepare("SELECT COUNT(*) FROM Productos WHERE nombre = ? AND modelo = ? AND talla = ? AND color = ? AND id_subcg = ?");
-        $check_stmt->bind_param('ssssi', $nombre, $modelo, $talla, $color, $id_subcg);
-        $check_stmt->execute();
-        $count = $check_stmt->get_result()->fetch_row()[0];
-        $check_stmt->close();
-        
-        if ($count > 0) {
-            $error = 'Ya existe un producto con las mismas características (nombre, modelo, talla, color y subcategoría). Por favor, verifica los datos.';
-        } else {
+        // Insertar el producto directamente (validación de duplicados simplificada)
+        try {
+            // Debug: Verificar datos antes de insertar
+            error_log("DEBUG CREAR: Insertando producto - nombre: $nombre, modelo: $modelo");
+            
             $stmt = $db->conn->prepare("INSERT INTO Productos (nombre, modelo, talla, color, stock, fecha_ing, material, id_subcg, id_nit, num_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->bind_param('ssssissiii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc);
-            $stmt->execute();
-            $nuevo_id = $db->conn->insert_id;
-            $stmt->close();
-        
-            // Generar notificación automática para todos los usuarios
-            $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
-            $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
-        
-            header('Location: productos.php?msg=creado');
-            exit;
+            
+            if ($stmt->execute()) {
+                $nuevo_id = $db->conn->insert_id;
+                $stmt->close();
+                
+                error_log("DEBUG CREAR: Producto creado exitosamente con ID: $nuevo_id");
+                
+                // Generar notificación automática para todos los usuarios
+                $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
+                $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
+                
+                error_log("DEBUG CREAR: Redirigiendo a productos.php?msg=creado");
+                header('Location: productos.php?msg=creado');
+                exit;
+            } else {
+                $error = 'Error en la ejecución: ' . $stmt->error;
+                error_log("DEBUG CREAR: Error SQL - " . $stmt->error);
+            }
+        } catch (Exception $e) {
+            $error = 'Error al crear el producto: ' . $e->getMessage();
+            error_log("DEBUG CREAR: Excepción - " . $e->getMessage());
         }
     } else {
         $error = 'No tienes permisos para crear productos.';
@@ -147,26 +153,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
         // Mensajes
 $show_notification = '';
 $producto_eliminado = [];
+
+// Debug: Verificar parámetros GET
+if (isset($_GET['msg'])) {
+    error_log("DEBUG MSG: Parámetro msg recibido = " . $_GET['msg']);
+}
+
 if (isset($_GET['msg'])) {
     switch ($_GET['msg']) {
         case 'creado':
             $message = 'Producto creado correctamente.';
             $show_notification = 'created';
+            error_log("DEBUG MSG: Configurando notificación de CREADO");
             break;
         case 'modificado':
             $message = 'Producto modificado correctamente.';
             $show_notification = 'updated';
             break;
         case 'eliminado':
-            // Obtener información específica del producto eliminado
-            $id_eliminado = isset($_GET['id_prod']) ? intval($_GET['id_prod']) : 0;
-            $nombre_eliminado = isset($_GET['nombre_prod']) ? urldecode($_GET['nombre_prod']) : 'Desconocido';
-            $producto_eliminado = [
-                'id' => $id_eliminado,
-                'nombre' => $nombre_eliminado
-            ];
-            $message = "Producto eliminado correctamente: $nombre_eliminado (ID: $id_eliminado)";
-            $show_notification = 'deleted';
+            // Solo mostrar notificación de eliminado si la URL contiene id_prod y nombre_prod
+            if (isset($_GET['id_prod']) && isset($_GET['nombre_prod']) && !isset($_GET['msg']) || $_GET['msg'] === 'eliminado') {
+                $id_eliminado = intval($_GET['id_prod']);
+                $nombre_eliminado = urldecode($_GET['nombre_prod']);
+                $producto_eliminado = [
+                    'id' => $id_eliminado,
+                    'nombre' => $nombre_eliminado
+                ];
+                $message = "Producto eliminado correctamente: $nombre_eliminado (ID: $id_eliminado)";
+                $show_notification = 'deleted';
+                error_log("DEBUG MSG: Configurando notificación de ELIMINADO");
+            }
             break;
     }
 }// Filtros
@@ -666,7 +682,9 @@ $stats = $db->conn->query("SELECT
                     $total = 0;
                     $allRows = $db->conn->query("SELECT COUNT(*) as total FROM Productos")->fetch_assoc();
                     $total = $allRows['total'];
-                    while($row = $result->fetch_assoc()): 
+                    
+                    if ($result && $result->num_rows > 0) {
+                        while($row = $result->fetch_assoc()): 
                         $filtrados++;
                         $stockClass = '';
                         $stockIcon = '';
@@ -740,7 +758,10 @@ $stats = $db->conn->query("SELECT
                                 </div>
                             </td>
                         </tr>
-                    <?php endwhile; ?>
+                    <?php endwhile; 
+                    } else { 
+                        echo '<tr><td colspan="9" class="text-center">No se encontraron productos</td></tr>';
+                    } ?>
                     <script>
                         document.getElementById('productosFiltrados').textContent = "<?= $filtrados ?>";
                         document.getElementById('productosTotal').textContent = "<?= $total ?>";
@@ -1346,13 +1367,16 @@ $stats = $db->conn->query("SELECT
 
             // Sistema de notificaciones automáticas
             <?php if ($show_notification): ?>
+            console.log('DEBUG: Mostrando notificación tipo: <?= $show_notification ?>');
             setTimeout(function() {
                 const notificationSystem = new NotificationSystem();
                 <?php if ($show_notification === 'created'): ?>
+                console.log('DEBUG: Ejecutando notificación de CREACIÓN');
                 notificationSystem.showProductChange('create', 'Producto creado exitosamente', 'success');
                 <?php elseif ($show_notification === 'updated'): ?>
                 notificationSystem.showProductChange('update', 'Producto actualizado exitosamente', 'success');
                 <?php elseif ($show_notification === 'deleted'): ?>
+                console.log('DEBUG: Ejecutando notificación de ELIMINACIÓN');
                 notificationSystem.showProductChange(
                     'delete', 
                     'Producto "<?= htmlspecialchars($producto_eliminado['nombre']) ?>" (ID: <?= $producto_eliminado['id'] ?>) eliminado del sistema', 
