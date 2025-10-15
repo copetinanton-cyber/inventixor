@@ -47,13 +47,6 @@ if (isset($_GET['eliminar'])) {
         $stmt->bind_param('i', $id_nit);
         $stmt->execute();
         $stmt->close();
-        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $rol = $_SESSION['rol'];
-            $detalles = json_encode($old);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Proveedor', $id_nit, 'eliminar', '$usuario', '$rol', '$detalles')");
-        }
-        
         // Generar notificación automática para todos los usuarios
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionProveedor($old, $usuario_nombre);

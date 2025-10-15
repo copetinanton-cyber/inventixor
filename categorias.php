@@ -37,13 +37,6 @@ if (isset($_GET['eliminar'])) {
         $stmt->bind_param('i', $id_categoria);
         $stmt->execute();
         $stmt->close();
-        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $rol = $_SESSION['rol'];
-            $detalles = json_encode($cat);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $id_categoria, 'eliminar', '$usuario', '$rol', '$detalles')");
-        }
-        
         // Generar notificación automática para todos los usuarios
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionCategoria($cat, $usuario_nombre);
@@ -65,12 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_categoria']
     $stmt->bind_param('ssi', $nombre, $descripcion, $id);
     $stmt->execute();
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(['antes'=>$old,'despues'=>compact('nombre','descripcion')]);
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $id, 'editar', '$usuario', '$rol', '$detalles')");
-    }
     header('Location: categorias.php?msg=modificado');
     exit;
 }
@@ -84,12 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_categoria'])) {
     $stmt->execute();
     $nuevo_id = $db->conn->insert_id;
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(compact('nombre','descripcion'));
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
-    }
     
     // Generar notificación automática para todos los usuarios
     $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';

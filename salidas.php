@@ -140,24 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_salida'])) {
                         $stmt2->execute();
                         $stmt2->close();
                         
-                        // Registrar en HistorialCRUD
-                        $usuario = $_SESSION['user']['nombres'] ?? 'Desconocido';
-                        $rol = $_SESSION['rol'];
-                        $detalles = json_encode([
-                            'producto' => $producto['nombre'],
-                            'cantidad_anterior' => $cantidad_anterior,
-                            'cantidad_nueva' => $cantidad_nueva,
-                            'diferencia' => $diferencia,
-                            'tipo_salida' => $tipo_salida,
-                            'observacion' => $observacion,
-                            'stock_anterior' => $producto['stock'],
-                            'stock_nuevo' => $stock_nuevo
-                        ]);
-                        $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
-                        $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'editar', $usuario, $rol, $detalles);
-                        $stmt_hist->execute();
-                        $stmt_hist->close();
-                        
                         $producto_nombre = $producto['nombre'];
                         header("Location: salidas.php?action=update&id=$id_salida&producto=" . urlencode($producto_nombre));
                         exit;
@@ -222,25 +204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar_salida'])) 
                 $stmt3->execute();
                 $stmt3->close();
 
-                // Registrar en HistorialCRUD solo para admin/coordinador
-                if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-                    $usuario = $_SESSION['user']['nombres'] ?? 'Desconocido';
-                    $rol = $_SESSION['rol'];
-                    $id_salida = $db->conn->insert_id;
-                    $detalles = json_encode([
-                        'producto' => $producto['nombre'],
-                        'cantidad' => $cantidad,
-                        'tipo_salida' => $tipo_salida,
-                        'observacion' => $observacion,
-                        'stock_anterior' => $producto['stock'],
-                        'stock_nuevo' => ($producto['stock'] - $cantidad)
-                    ]);
-                    $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'crear', $usuario, $rol, $detalles);
-                    $stmt_hist->execute();
-                    $stmt_hist->close();
-                }
-
+                $id_salida = $db->conn->insert_id;
                 $producto_nombre = $producto['nombre'];
                 header("Location: salidas.php?action=create&id=$id_salida&producto=" . urlencode($producto_nombre));
                 exit;

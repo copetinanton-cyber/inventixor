@@ -46,13 +46,6 @@ if (isset($_GET['eliminar'])) {
         $stmt->bind_param('i', $id_subcategoria);
         $stmt->execute();
         $stmt->close();
-        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $rol = $_SESSION['rol'];
-            $detalles = json_encode($subcat);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Subcategoria', $id_subcategoria, 'eliminar', '$usuario', '$rol', '$detalles')");
-        }
-        
         // Generar notificación automática para todos los usuarios
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionSubcategoria($subcat, $usuario_nombre);
@@ -106,12 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_subcategori
     $stmt->bind_param('ssii', $nombre, $descripcion, $id_categ, $id);
     $stmt->execute();
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(['antes'=>$old,'despues'=>compact('nombre','descripcion','id_categ')]);
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Subcategoria', $id, 'editar', '$usuario', '$rol', '$detalles')");
-    }
     header('Location: subcategorias.php?msg=modificado');
     exit;
 }
@@ -126,12 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_subcategoria'])
     $stmt->execute();
     $nuevo_id = $db->conn->insert_id;
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(compact('nombre','descripcion','id_categ'));
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Subcategoria', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
-    }
     
     // Generar notificación automática para todos los usuarios
     $categoria_nombre = $db->conn->query("SELECT nombre FROM Categoria WHERE id_categ = $id_categ")->fetch_assoc()['nombre'];
