@@ -356,11 +356,6 @@ if (!empty($params)) {
                 </a>
             </li>
             <li class="menu-item">
-                <a href="ia_ayuda.php" class="menu-link">
-                    <i class="fas fa-robot me-2"></i> Asistente IA
-                </a>
-            </li>
-            <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
                 </a>

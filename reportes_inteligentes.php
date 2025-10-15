@@ -1844,8 +1844,8 @@ if (isset($_POST['action'])) {
             
             let html = `
                 <div class="alert alert-success">
-                    <h5><i class="fas fa-robot me-2"></i>Recomendaciones IA</h5>
-                    <p>Sistema inteligente ha identificado ${pedidos.sugerencias.length} productos para reposición: 
+                    <h5><i class="fas fa-lightbulb me-2"></i>Recomendaciones del Sistema</h5>
+                    <p>El sistema ha identificado ${pedidos.sugerencias.length} productos para reposición: 
                        ${criticos} críticos, ${altos} alta prioridad.</p>
                 </div>
                 

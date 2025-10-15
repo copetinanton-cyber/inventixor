@@ -569,12 +569,7 @@ $stats = $stats_result->fetch_assoc();
                         </a>
                     </li>
                     <?php endif; ?>
-                    <li class="nav-item mb-1">
-                        <a class="nav-link d-flex align-items-center py-2 px-3" href="ia_ayuda.php">
-                            <i class="fas fa-robot me-3"></i>
-                            <span>Asistente IA</span>
-                        </a>
-                    </li>
+
                 </ul>
                 
                 <div class="mt-auto pt-4 px-2">
@@ -597,11 +592,7 @@ $stats = $stats_result->fetch_assoc();
                             <i class="fas fa-users me-2"></i>Usuarios
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="ia_ayuda.php">
-                            <i class="fas fa-robot me-2"></i>Asistente IA
-                        </a>
-                    </li>
+
                 </ul>
             </div>
         </nav>

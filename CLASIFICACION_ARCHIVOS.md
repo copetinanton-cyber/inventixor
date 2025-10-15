@@ -17,7 +17,7 @@
 ├── 📊 reportes.php                 # Gestión de reportes
 ├── 🚨 alertas.php                  # Sistema de alertas
 ├── 👤 usuarios.php                 # Gestión de usuarios
-├── 🤖 ia_ayuda.php                 # Asistente Virtual IA
+
 ├── 🔒 autorizaciones.php           # Control de permisos
 ├── 📄 salidas_reportes.php         # Reportes específicos de salidas
 ├── 🗄️ db.sql                       # Script de base de datos
@@ -129,13 +129,13 @@
 - listar_usuarios.php ✅
 - *_backup.php (5 archivos) ✅
 - PROYECTO_COMPLETADO.md ✅
-- MEJORAS_ASISTENTE_IA.md ✅
+
 - CORRECCION_REPORTES.md ✅
 
 ### **⚠️ ARCHIVOS A REVISAR (3 archivos)**
 - login.php (duplicado en /app/views/)
 - salidas.php (duplicado en /views/)
-- ia_ayuda.php (verificar ubicación)
+
 
 ---
 
@@ -146,7 +146,7 @@ inventixor/
 ├── 🔐 Archivos de acceso público (raíz)
 │   ├── index.php, login.php, logout.php
 │   ├── dashboard.php, categorias.php, etc.
-│   └── ia_ayuda.php, autorizaciones.php
+│   └── autorizaciones.php
 ├── 📁 app/
 │   ├── 🎯 controllers/ (Lógica de negocio)
 │   ├── 🗃️ models/ (Acceso a datos)

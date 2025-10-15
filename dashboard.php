@@ -193,11 +193,6 @@ $alertas_count = count(Alerta::getAll());
                 </a>
             </li>
             <li class="menu-item">
-                <a href="ia_ayuda.php" class="menu-link">
-                    <i class="fas fa-robot me-2"></i> Asistente IA
-                </a>
-            </li>
-            <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
                 </a>
@@ -352,16 +347,6 @@ if (is_array($user) && isset($user['rol']) && $user['rol']) {
                     <i class="fas fa-bell text-danger fa-2x mb-3"></i>
                     <h6>Gestión de Alertas</h6>
                     <a href="alertas.php" class="btn btn-danger btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i>Ir
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="stats-card text-center">
-                    <i class="fas fa-robot text-dark fa-2x mb-3"></i>
-                    <h6>Asistente IA</h6>
-                    <a href="ia_ayuda.php" class="btn btn-dark btn-sm">
                         <i class="fas fa-arrow-right me-1"></i>Ir
                     </a>
                 </div>

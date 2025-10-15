@@ -818,9 +818,7 @@ foreach ($reportes_disponibles as $id => $reporte) {
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3><i class="fas fa-brain me-2"></i>Análisis Avanzado</h3>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-outline-primary" onclick="generarAnalisisIA()">
-                                <i class="fas fa-robot me-2"></i>Análisis IA
-                            </button>
+
                             <button class="btn btn-outline-success" onclick="generarRecomendaciones()">
                                 <i class="fas fa-lightbulb me-2"></i>Recomendaciones
                             </button>
