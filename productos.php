@@ -116,18 +116,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
         $id_nit = intval($_POST['id_nit']);
         $num_doc = intval($_POST['num_doc']);
         
-        $stmt = $db->conn->prepare("INSERT INTO Productos (nombre, modelo, talla, color, stock, fecha_ing, material, id_subcg, id_nit, num_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('ssssissiii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc);
-        $stmt->execute();
-        $nuevo_id = $db->conn->insert_id;
-        $stmt->close();
+        // Verificar si ya existe un producto con las mismas características principales
+        $check_stmt = $db->conn->prepare("SELECT COUNT(*) FROM Productos WHERE nombre = ? AND modelo = ? AND talla = ? AND color = ? AND id_subcg = ?");
+        $check_stmt->bind_param('ssssi', $nombre, $modelo, $talla, $color, $id_subcg);
+        $check_stmt->execute();
+        $count = $check_stmt->get_result()->fetch_row()[0];
+        $check_stmt->close();
         
-        // Generar notificación automática para todos los usuarios
-        $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
-        $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
+        if ($count > 0) {
+            $error = 'Ya existe un producto con las mismas características (nombre, modelo, talla, color y subcategoría). Por favor, verifica los datos.';
+        } else {
+            $stmt = $db->conn->prepare("INSERT INTO Productos (nombre, modelo, talla, color, stock, fecha_ing, material, id_subcg, id_nit, num_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssssissiii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc);
+            $stmt->execute();
+            $nuevo_id = $db->conn->insert_id;
+            $stmt->close();
         
-        header('Location: productos.php?msg=creado');
-        exit;
+            // Generar notificación automática para todos los usuarios
+            $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
+            $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
+        
+            header('Location: productos.php?msg=creado');
+            exit;
+        }
     } else {
         $error = 'No tienes permisos para crear productos.';
     }
@@ -1304,6 +1315,33 @@ $stats = $db->conn->query("SELECT
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
                 }, index * 200);
+            });
+
+            // Protección contra doble envío del formulario
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                let isSubmitting = false;
+                form.addEventListener('submit', function(e) {
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    isSubmitting = true;
+                    const submitButtons = form.querySelectorAll('button[type="submit"]');
+                    submitButtons.forEach(button => {
+                        button.disabled = true;
+                        const originalText = button.innerHTML;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                        
+                        // Restaurar el botón después de 10 segundos en caso de error
+                        setTimeout(() => {
+                            button.disabled = false;
+                            button.innerHTML = originalText;
+                            isSubmitting = false;
+                        }, 10000);
+                    });
+                });
             });
 
             // Sistema de notificaciones automáticas
