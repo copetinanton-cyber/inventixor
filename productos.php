@@ -36,6 +36,7 @@ if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'
     $salidas = $db->conn->query("SELECT COUNT(*) FROM Salidas WHERE id_prod = $id_prod")->fetch_row()[0];
     $alertas = $db->conn->query("SELECT COUNT(*) FROM Alertas WHERE id_prod = $id_prod")->fetch_row()[0];
     $reportes = $db->conn->query("SELECT COUNT(*) FROM Reportes WHERE id_prod = $id_prod")->fetch_row()[0];
+    // $movimientos = $db->conn->query("SELECT COUNT(*) FROM HistorialMovimientos WHERE id_prod = $id_prod")->fetch_row()[0];
     
     if ($salidas > 0 || $alertas > 0 || $reportes > 0) {
         $entidades = [];
@@ -47,6 +48,18 @@ if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'
         // Obtener datos antes de eliminar
         $prod = $db->conn->query("SELECT * FROM Productos WHERE id_prod = $id_prod")->fetch_assoc();
         
+        // Registrar en historial CRUD antes de eliminar
+        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
+            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
+            $rol = $_SESSION['rol'];
+            $detalles = json_encode($prod);
+            // $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $id_prod, 'eliminar', '$usuario', '$rol', '$detalles')");
+        }
+        
+        // Eliminar registros dependientes primero para evitar violaciones FK
+    // $db->conn->query("DELETE FROM HistorialMovimientos WHERE id_prod = $id_prod");
+        
+        // Ahora eliminar el producto principal
         // Eliminar el producto principal
         $stmt = $db->conn->prepare("DELETE FROM Productos WHERE id_prod = ?");
         $stmt->bind_param('i', $id_prod);
@@ -88,6 +101,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_producto'])
             $stmt->bind_param('ssssissiiii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc, $id_prod);
             $stmt->execute();
             $stmt->close();
+            // Registrar en historial CRUD
+            if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
+                $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
+                $rol = $_SESSION['rol'];
+                $detalles = json_encode(['antes'=>$old,'despues'=>compact('nombre','modelo','talla','color','stock','fecha_ing','material','id_subcg','id_nit','num_doc')]);
+                // $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $id_prod, 'editar', '$usuario', '$rol', '$detalles')");
+                // $db->conn->query("INSERT INTO HistorialMovimientos (id_prod, tipo_movimiento, usuario, observaciones) VALUES ($id_prod, 'edicion', '$usuario', 'Modificación de producto')");
+            }
             
             // Verificar stock bajo después de modificación
             if ($stock <= 10) { // Umbral de stock bajo
@@ -116,6 +137,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
         $id_nit = intval($_POST['id_nit']);
         $num_doc = intval($_POST['num_doc']);
         
+        $stmt = $db->conn->prepare("INSERT INTO Productos (nombre, modelo, talla, color, stock, fecha_ing, material, id_subcg, id_nit, num_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('ssssissiii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc);
+        $stmt->execute();
+        $nuevo_id = $db->conn->insert_id;
+        $stmt->close();
+        // Registrar en historial CRUD
+        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
+            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
+            $rol = $_SESSION['rol'];
+            $detalles = json_encode(compact('nombre','modelo','talla','color','stock','fecha_ing','material','id_subcg','id_nit','num_doc'));
+            // $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
+            // $db->conn->query("INSERT INTO HistorialMovimientos (id_prod, tipo_movimiento, usuario, observaciones) VALUES ($nuevo_id, 'alta', '$usuario', 'Creación de producto')");
         // Insertar el producto directamente (validación de duplicados simplificada)
         try {
             // Debug: Verificar datos antes de insertar

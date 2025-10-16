@@ -140,6 +140,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_salida'])) {
                         $stmt2->execute();
                         $stmt2->close();
                         
+                        // Registrar en HistorialCRUD
+                        $usuario = $_SESSION['user']['nombres'] ?? 'Desconocido';
+                        $rol = $_SESSION['rol'];
+                        $detalles = json_encode([
+                            'producto' => $producto['nombre'],
+                            'cantidad_anterior' => $cantidad_anterior,
+                            'cantidad_nueva' => $cantidad_nueva,
+                            'diferencia' => $diferencia,
+                            'tipo_salida' => $tipo_salida,
+                            'observacion' => $observacion,
+                            'stock_anterior' => $producto['stock'],
+                            'stock_nuevo' => $stock_nuevo
+                        ]);
+                        // $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
+                        // $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'editar', $usuario, $rol, $detalles);
+                        // $stmt_hist->execute();
+                        // $stmt_hist->close();
+                        
                         $producto_nombre = $producto['nombre'];
                         header("Location: salidas.php?action=update&id=$id_salida&producto=" . urlencode($producto_nombre));
                         exit;
@@ -204,6 +222,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar_salida'])) 
                 $stmt3->execute();
                 $stmt3->close();
 
+                // Registrar en HistorialCRUD solo para admin/coordinador
+                if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
+                    $usuario = $_SESSION['user']['nombres'] ?? 'Desconocido';
+                    $rol = $_SESSION['rol'];
+                    $id_salida = $db->conn->insert_id;
+                    $detalles = json_encode([
+                        'producto' => $producto['nombre'],
+                        'cantidad' => $cantidad,
+                        'tipo_salida' => $tipo_salida,
+                        'observacion' => $observacion,
+                        'stock_anterior' => $producto['stock'],
+                        'stock_nuevo' => ($producto['stock'] - $cantidad)
+                    ]);
+                        // $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
+                        // $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'crear', $usuario, $rol, $detalles);
+                        // $stmt_hist->execute();
+                        // $stmt_hist->close();
+                }
+
                 $id_salida = $db->conn->insert_id;
                 $producto_nombre = $producto['nombre'];
                 header("Location: salidas.php?action=create&id=$id_salida&producto=" . urlencode($producto_nombre));
@@ -218,6 +255,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar_salida'])) 
 }
 
 // Mensajes
+// Mostrar detalles de salida
+if (isset($_GET['ver'])) {
+    $id_salida = intval($_GET['ver']);
+    $stmt = $db->conn->prepare("SELECT s.*, p.nombre as producto_nombre, p.stock as stock_actual, u.nombres as usuario_nombres FROM Salidas s JOIN Productos p ON s.id_prod = p.id_prod LEFT JOIN users u ON p.num_doc = u.num_doc WHERE s.id_salida = ?");
+    $stmt->bind_param('i', $id_salida);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $detalle = $result->fetch_assoc();
+    $stmt->close();
+    // Historial de salidas del producto
+    $historial = [];
+    if ($detalle) {
+        $stmt2 = $db->conn->prepare("SELECT s.*, u.nombres as usuario_nombres FROM Salidas s LEFT JOIN users u ON s.id_prod = u.num_doc WHERE s.id_prod = ? ORDER BY s.fecha_hora DESC");
+        $stmt2->bind_param('i', $detalle['id_prod']);
+        $stmt2->execute();
+        $result2 = $stmt2->get_result();
+        while ($row = $result2->fetch_assoc()) {
+            $historial[] = $row;
+        }
+        $stmt2->close();
+    }
+}
 if (isset($_GET['msg'])) {
     switch ($_GET['msg']) {
         case 'registrado':
@@ -256,6 +315,11 @@ $sql = "SELECT s.id_salida, s.cantidad, s.tipo_salida, s.observacion, s.fecha_ho
 $where_conditions = [];
 $params = [];
 $types = '';
+
+// Filtrar por salidas del día actual por defecto
+if (empty($filtro_fecha_desde) && empty($filtro_fecha_hasta) && (!isset($_GET['historial']) || $_GET['historial'] != '1')) {
+    $where_conditions[] = "DATE(s.fecha_hora) = CURDATE()";
+}
 
 if ($filtro_producto) {
     $where_conditions[] = "p.nombre LIKE ?";
