@@ -93,7 +93,7 @@ Reportes:
 - ✅ Mejorar gestión de Reportes
 - ✅ Modernizar gestión de Alertas
 - ✅ Actualizar gestión de Usuarios
-- ✅ Modernizar Asistente IA avanzado
+
 ## **FASE 3: IMPLEMENTACIÓN SISTEMÁTICA**
 ### **Módulo 1: Login y Autenticación**
 **Mejoras Aplicadas:**
@@ -195,119 +195,8 @@ LEFT JOIN Users u ON p.num_doc = u.num_doc
 - Permisos específicos por módulo
 - Gestión segura de contraseñas
 - Auditoría de actividades
-## **FASE 4: ASISTENTE VIRTUAL IA - Inventixor**
-### **Diseño Modernizado**
-- **Bootstrap 5.3.0**: Framework responsive moderno
-- **Gradientes elegantes**: `#667eea` → `#764ba2` 
-- **Font Awesome 6.4.0**: Iconografía profesional
-- **Animaciones CSS**: Transiciones suaves y efectos visuales
-- **Diseño responsive**: Adaptable a todos los dispositivos
-### **Funcionalidades Inteligentes**
-#### **Sistema de Chat Avanzado**
-- Chat en tiempo real con respuestas contextuales
-- Indicador de escritura animado
-- Burbujas de chat diferenciadas (usuario/bot)
-- Scroll automático
-- Animaciones de entrada para mensajes
-#### **Respuestas Inteligentes**
-```php
-// Respuestas basadas en datos reales del sistema
-- Productos: Total de productos y stock
-- Categorías: Conteo de categorías y subcategorías  
-- Proveedores: Número de proveedores registrados
-- Salidas: Historial y métodos FIFO/LIFO
-- Alertas: Alertas activas y notificaciones
-- Usuarios: Gestión por roles (admin/coordinador/auxiliar)
-- Reportes: Estadísticas y visualizaciones
-```
-#### **Características Avanzadas**
-- **Reconocimiento de voz**: Usando Web Speech API
-- **Síntesis de voz**: Respuestas audibles en español
-- **Sugerencias rápidas**: Chips interactivos con preguntas frecuentes
-- **Limpieza de chat**: Botón para reiniciar conversación
-- **Estadísticas en tiempo real**: Dashboard integrado
-### **Dashboard de Estadísticas**
-```php
-- Total de productos: <?php echo $stats['total_productos']; ?>
-- Categorías: <?php echo $stats['total_categorias']; ?>
-- Alertas activas: <?php echo $stats['alertas_activas']; ?>
-- Stock total: <?php echo number_format($stats['stock_total']); ?>
-```
-### **Sistema de Roles Integrado**
-- **Administrador**: Acceso completo al módulo de usuarios
-- **Coordinador**: Gestión avanzada del inventario
-- **Auxiliar**: Consultas básicas y solicitudes
-### **Navegación Moderna**
-- **Sidebar fijo**: Navegación lateral con iconos
-- **Información de usuario**: Avatar y rol del usuario actual
-- **Estados activos**: Indicador visual del módulo actual
-- **Hover effects**: Interacciones visuales mejoradas
-### **Sistema de Chat Contextual**
-#### **Preguntas Soportadas**
-1. **Productos e Inventario**
-   - "¿Cuántos productos tengo?"
-   - "¿Cuál es mi stock total?"
-   - "¿Cómo registro un producto?"
-2. **Categorías y Organización**
-   - "¿Cuántas categorías tengo?"
-   - "¿Cómo organizo mi inventario?"
-3. **Proveedores**
-   - "¿Cuántos proveedores están registrados?"
-   - "¿Cómo gestiono proveedores?"
-4. **Salidas y Control de Stock**
-   - "¿Cómo funcionan las salidas FIFO?"
-   - "¿Qué es LIFO?"
-   - "¿Cuántas salidas se han registrado?"
-5. **Alertas y Notificaciones**
-   - "¿Qué alertas están activas?"
-   - "¿Cómo funcionan las alertas?"
-6. **Usuarios y Permisos**
-   - "¿Cuál es mi rol?"
-   - "¿Qué permisos tengo?"
-   - "¿Cuántos usuarios hay?"
-7. **Reportes y Estadísticas**
-   - "¿Qué reportes puedo generar?"
-   - "¿Cómo veo estadísticas?"
-### **Tecnologías Utilizadas**
-#### **Frontend**
-- **Bootstrap 5.3.0**: Framework CSS
-- **Font Awesome 6.4.0**: Iconos
-- **jQuery 3.6.0**: Interacciones JavaScript
-- **Animate.css**: Animaciones CSS
-- **Web Speech API**: Reconocimiento y síntesis de voz
-#### **Backend**
-- **PHP 8+**: Lógica del servidor
-- **MySQL**: Base de datos
-- **AJAX**: Comunicación asíncrona
-- **Prepared Statements**: Seguridad en consultas
-### **Características Técnicas**
-#### **Optimizaciones**
-- **Consultas optimizadas**: JOINs eficientes
-- **Prepared statements**: Seguridad SQL
-- **Respuestas en tiempo real**: Sistema de estadísticas dinámicas
-- **Manejo de errores**: Validaciones robustas
-#### **Experiencia de Usuario**
-- **Interfaz intuitiva**: Diseño user-friendly
-- **Feedback visual**: Indicadores de estado
-- **Accesibilidad**: Soporte para lectores de pantalla
-- **Responsiveness**: Compatible con móviles y tablets
-### 📱 **Compatibilidad**
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-- ✅ Dispositivos móviles
-- ✅ Tablets
-### **Instalación y Uso**
-1. **Acceso**: Navegar a `ia_ayuda.php`
-2. **Autenticación**: Requiere sesión activa
-3. **Interacción**: 
-   - Escribir preguntas en el chat
-   - Usar sugerencias rápidas
-   - Activar reconocimiento de voz (opcional)
-4. **Navegación**: Usar el menú lateral para cambiar módulos
-### **Métricas de Rendimiento**
-- **Tiempo de respuesta**: < 500ms
+
+
 - **Consultas SQL**: Optimizadas con JOINs
 - **Memoria**: Uso eficiente de recursos
 - **Escalabilidad**: Preparado para crecimiento
@@ -441,7 +330,7 @@ WHERE id_repor=?
 - 📄 `reportes.php` - Reportes dinámicos con gráficos
 - 📄 `alertas.php` - Sistema de notificaciones avanzado
 - 📄 `usuarios.php` - Gestión segura de usuarios
-- 📄 `ia_ayuda.php` - Asistente virtual inteligente
+
 #### **Funcionalidades Implementadas**
 - 🔹 **Autenticación**: Login seguro con roles
 - 🔹 **Dashboard**: Estadísticas en tiempo real
@@ -452,16 +341,12 @@ WHERE id_repor=?
 - 🔹 **Alertas**: Sistema de notificaciones
 - 🔹 **Control de Stock**: FIFO/LIFO automático
 - 🔹 **Reportes Dinámicos**: Generación automática
-- 🔹 **Asistente IA**: Chat contextual inteligente
+
 - 🔹 **Responsive**: Adaptable a todos los dispositivos
 - 🔹 **Animaciones**: Transiciones suaves CSS3
 - 🔹 **Validaciones**: Formularios con feedback en tiempo real
 ### **Innovaciones Destacadas**
-#### **1. Asistente Virtual IA**
-- Primera implementación de IA conversacional en sistema de inventario
-- Respuestas contextuales basadas en datos reales
-- Reconocimiento y síntesis de voz
-- Chat interactivo con sugerencias inteligentes
+
 #### **2. Sistema FIFO/LIFO Automático**
 - Control automático de inventario por métodos contables
 - Validación de stock en tiempo real
@@ -501,7 +386,7 @@ WHERE id_repor=?
 - **Diseño Consistente**: Interfaz uniforme en todo el sistema
 - **Funcionalidad Avanzada**: Características innovadoras implementadas
 ### **Innovaciones Destacadas**
-1. **Asistente Virtual IA**: Primer chatbot contextual para inventarios
+1. **Sistema Avanzado de Inventario**: Control completo de stock y productos
 2. **Sistema FIFO/LIFO**: Control automático de stock avanzado
 3. **Dashboard Inteligente**: Métricas en tiempo real
 4. **Arquitectura Moderna**: MVC con PHP, HTML&CSS, Bootstrap 5.3.0 y MySQL

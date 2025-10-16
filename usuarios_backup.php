@@ -728,12 +728,7 @@ if ($adminCheck == 0) {
                     </a>
                 </li>
                 <?php endif; ?>
-                <li class="nav-item mb-1">
-                    <a class="nav-link d-flex align-items-center" href="ia_ayuda.php">
-                        <i class="fas fa-robot me-3"></i>
-                        <span>Asistente IA</span>
-                    </a>
-                </li>
+
             </ul>
             
             <div class="mt-auto pt-4 px-3">
@@ -1329,12 +1324,7 @@ if ($adminCheck == 0) {
                         </a>
                     </li>
                     <?php endif; ?>
-                    <li class="nav-item mb-1">
-                        <a class="nav-link d-flex align-items-center py-2 px-3" href="ia_ayuda.php">
-                            <i class="fas fa-robot me-3"></i>
-                            <span>Asistente IA</span>
-                        </a>
-                    </li>
+
                 </ul>
                 
                 <div class="mt-auto pt-4 px-2">

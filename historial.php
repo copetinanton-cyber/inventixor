@@ -44,10 +44,92 @@ $roles = ['admin','coordinador','auxiliar','usuario'];
     <meta charset="UTF-8">
     <title>Historial de Movimientos y CRUD</title>
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-boxes"></i> Inventixor</h3>
+            <p class="mb-0">Sistema de Inventario</p>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.php" class="menu-link">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="productos.php" class="menu-link">
+                    <i class="fas fa-box me-2"></i> Productos
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="categorias.php" class="menu-link">
+                    <i class="fas fa-tags me-2"></i> Categorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="subcategorias.php" class="menu-link">
+                    <i class="fas fa-tag me-2"></i> Subcategorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="historial.php" class="menu-link active">
+                    <i class="fas fa-history me-2"></i> Historial
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="proveedores.php" class="menu-link">
+                    <i class="fas fa-truck me-2"></i> Proveedores
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="salidas.php" class="menu-link">
+                    <i class="fas fa-sign-out-alt me-2"></i> Salidas
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="reportes.php" class="menu-link">
+                    <i class="fas fa-chart-bar me-2"></i> Reportes
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="reportes_inteligentes.php" class="menu-link">
+                    <i class="fas fa-brain me-2"></i> Reportes Inteligentes
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="alertas.php" class="menu-link">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Alertas
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="usuarios.php" class="menu-link">
+                    <i class="fas fa-users me-2"></i> Usuarios
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="logout.php" class="menu-link">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
 <div class="container mt-4">
     <h2 class="mb-3"><i class="fas fa-history me-2"></i>Historial de Movimientos y CRUD</h2>
     <form class="row g-2 mb-3">
@@ -105,6 +187,8 @@ $roles = ['admin','coordinador','auxiliar','usuario'];
         </table>
     </div>
 </div>
+</div>
+</div>
 <script>
 function mostrarDetalles(btn) {
     let detalles = btn.getAttribute('data-detalles');
@@ -121,5 +205,12 @@ function mostrarDetalles(btn) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Sistema Responsive -->
+<script src="public/js/responsive-sidebar.js"></script>
+<script>
+    // Marcar como activo el menú de historial
+    setActiveMenuItem('historial.php');
+</script>
 </body>
 </html>

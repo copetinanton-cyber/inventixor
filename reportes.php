@@ -267,6 +267,7 @@ $reportes_por_usuario = $db->conn->query("SELECT
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     
     <style>
         :root {
@@ -405,8 +406,16 @@ $reportes_por_usuario = $db->conn->query("SELECT
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3><i class="fas fa-boxes"></i> Inventixor</h3>
             <p class="mb-0">Sistema de Inventario</p>
@@ -456,11 +465,6 @@ $reportes_por_usuario = $db->conn->query("SELECT
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="ia_ayuda.php" class="menu-link">
-                    <i class="fas fa-robot me-2"></i> Asistente IA
                 </a>
             </li>
             <li class="menu-item">
@@ -984,6 +988,13 @@ $reportes_por_usuario = $db->conn->query("SELECT
     
     <!-- Sistema de Notificaciones -->
     <script src="public/js/notifications.js"></script>
+    
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de reportes
+        setActiveMenuItem('reportes.php');
+    </script>
     
     <script>
         let reportToDelete = null;
