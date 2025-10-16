@@ -239,6 +239,7 @@ $stats = $stats_result->fetch_assoc();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     <style>
         body {
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -496,6 +497,14 @@ $stats = $stats_result->fetch_assoc();
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
 </div>
@@ -503,7 +512,7 @@ $stats = $stats_result->fetch_assoc();
 <div class="container-fluid p-0">
     <div class="row g-0">
         <!-- Sidebar Navigation -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar position-fixed h-100">
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar position-fixed h-100" id="sidebar">
             <div class="position-sticky pt-4">
                 <div class="text-center mb-4">
                     <h3 class="text-white fw-bold">
@@ -998,6 +1007,13 @@ $stats = $stats_result->fetch_assoc();
 
 <!-- Sistema de Notificaciones -->
 <script src="public/js/notifications.js"></script>
+
+<!-- Sistema Responsive -->
+<script src="public/js/responsive-sidebar.js"></script>
+<script>
+    // Marcar como activo el menú de alertas
+    setActiveMenuItem('alertas.php');
+</script>
 
 <script>
 let accionConfirmada = null;
