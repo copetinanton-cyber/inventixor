@@ -325,15 +325,6 @@ if (is_array($user) && isset($user['rol']) && $user['rol']) {
     echo 'N/A';
 }
 ?></span></p>
-                    <!-- Información de debug temporal -->
-                    <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px;">
-                        <strong>Debug Info:</strong><br>
-                        User type: <?php echo gettype($user); ?><br>
-                        User content: <?php echo htmlspecialchars(json_encode($user)); ?><br>
-                        Session user: <?php echo htmlspecialchars(json_encode($_SESSION['user'] ?? 'No definido')); ?><br>
-                        <strong>Índices del array $user:</strong><br>
-                        <?php if (is_array($user)) { foreach(array_keys($user) as $key) { echo htmlspecialchars($key) . ' | '; } } ?>
-                    </div>
                 </div>
                 <a href="logout.php" class="btn btn-light">
                     <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
