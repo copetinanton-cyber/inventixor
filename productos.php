@@ -36,7 +36,7 @@ if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'
     $salidas = $db->conn->query("SELECT COUNT(*) FROM Salidas WHERE id_prod = $id_prod")->fetch_row()[0];
     $alertas = $db->conn->query("SELECT COUNT(*) FROM Alertas WHERE id_prod = $id_prod")->fetch_row()[0];
     $reportes = $db->conn->query("SELECT COUNT(*) FROM Reportes WHERE id_prod = $id_prod")->fetch_row()[0];
-    $movimientos = $db->conn->query("SELECT COUNT(*) FROM HistorialMovimientos WHERE id_prod = $id_prod")->fetch_row()[0];
+    // $movimientos = $db->conn->query("SELECT COUNT(*) FROM HistorialMovimientos WHERE id_prod = $id_prod")->fetch_row()[0];
     
     if ($salidas > 0 || $alertas > 0 || $reportes > 0) {
         $entidades = [];
@@ -54,11 +54,11 @@ if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'
             $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
             $rol = $_SESSION['rol'];
             $detalles = json_encode($prod);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $id_prod, 'eliminar', '$usuario', '$rol', '$detalles')");
+            // $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $id_prod, 'eliminar', '$usuario', '$rol', '$detalles')");
         }
         
         // Eliminar registros dependientes primero para evitar violaciones FK
-        $db->conn->query("DELETE FROM HistorialMovimientos WHERE id_prod = $id_prod");
+    // $db->conn->query("DELETE FROM HistorialMovimientos WHERE id_prod = $id_prod");
         
         // Ahora eliminar el producto principal
         $stmt = $db->conn->prepare("DELETE FROM Productos WHERE id_prod = ?");
@@ -106,8 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_producto'])
                 $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
                 $rol = $_SESSION['rol'];
                 $detalles = json_encode(['antes'=>$old,'despues'=>compact('nombre','modelo','talla','color','stock','fecha_ing','material','id_subcg','id_nit','num_doc')]);
-                $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $id_prod, 'editar', '$usuario', '$rol', '$detalles')");
-                $db->conn->query("INSERT INTO HistorialMovimientos (id_prod, tipo_movimiento, usuario, observaciones) VALUES ($id_prod, 'edicion', '$usuario', 'Modificación de producto')");
+                // $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $id_prod, 'editar', '$usuario', '$rol', '$detalles')");
+                // $db->conn->query("INSERT INTO HistorialMovimientos (id_prod, tipo_movimiento, usuario, observaciones) VALUES ($id_prod, 'edicion', '$usuario', 'Modificación de producto')");
             }
             
             // Verificar stock bajo después de modificación
@@ -147,8 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
             $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
             $rol = $_SESSION['rol'];
             $detalles = json_encode(compact('nombre','modelo','talla','color','stock','fecha_ing','material','id_subcg','id_nit','num_doc'));
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
-            $db->conn->query("INSERT INTO HistorialMovimientos (id_prod, tipo_movimiento, usuario, observaciones) VALUES ($nuevo_id, 'alta', '$usuario', 'Creación de producto')");
+            // $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
+            // $db->conn->query("INSERT INTO HistorialMovimientos (id_prod, tipo_movimiento, usuario, observaciones) VALUES ($nuevo_id, 'alta', '$usuario', 'Creación de producto')");
         }
         
         // Generar notificación automática para todos los usuarios
@@ -491,11 +491,6 @@ $stats = $db->conn->query("SELECT
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="ia_ayuda.php" class="menu-link">
-                    <i class="fas fa-robot me-2"></i> Asistente IA
                 </a>
             </li>
             <li class="menu-item">
