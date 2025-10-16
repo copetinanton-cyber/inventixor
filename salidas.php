@@ -154,7 +154,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_salida'])) {
                             'stock_nuevo' => $stock_nuevo
                         ]);
                         $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
-                        $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'editar', $usuario, $rol, $detalles);
+                        $entidad = 'Salida';
+                        $accion = 'editar';
+                        $stmt_hist->bind_param('sissss', $entidad, $id_salida, $accion, $usuario, $rol, $detalles);
                         $stmt_hist->execute();
                         $stmt_hist->close();
                         
@@ -236,7 +238,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar_salida'])) 
                         'stock_nuevo' => ($producto['stock'] - $cantidad)
                     ]);
                     $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'crear', $usuario, $rol, $detalles);
+                    $entidad = 'Salida';
+                    $accion = 'crear';
+                    $stmt_hist->bind_param('sissss', $entidad, $id_salida, $accion, $usuario, $rol, $detalles);
                     $stmt_hist->execute();
                     $stmt_hist->close();
                 }
@@ -667,9 +671,13 @@ $stats = $db->conn->query("SELECT
                         <label for="cantidad" class="form-label">
                             <i class="fas fa-hashtag me-1"></i>Cantidad
                         </label>
-                        <input type="number" name="cantidad" id="cantidad" class="form-control" 
-                               min="1" required placeholder="0" onchange="validateStock()">
-                        <small class="text-muted">Stock disponible: <span id="stockDisplay">--</span></small>
+                        <div class="input-group">
+                            <input type="number" name="cantidad" id="cantidad" class="form-control" 
+                                   min="1" required placeholder="0" onchange="validateStock()">
+                            <span class="input-group-text bg-light text-muted small">
+                                Stock: <span id="stockDisplay">--</span>
+                            </span>
+                        </div>
                     </div>
                     <div class="col-md-3">
                         <label for="motivo" class="form-label">
