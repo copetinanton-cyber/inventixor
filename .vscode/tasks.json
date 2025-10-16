@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Importar datos de prueba (restaurar_datos_prueba.sql)",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& { $mysql='C:\\xampp\\mysql\\bin\\mysql.exe'; if (-Not (Test-Path $mysql)) { $mysql='mysql'; }; & $mysql -u root -h localhost inventixor --default-character-set=utf8mb4 -e \\\"SOURCE C:/xampp/htdocs/inventixor/restaurar_datos_prueba.sql\\\" }"
+			],
+			"problemMatcher": []
+		}
+	]
+}

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{MODULE_TITLE}} - Inventixor</title>
+    <meta name="description" content="{{MODULE_DESCRIPTION}}">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'bounce-subtle': 'bounceSubtle 0.6s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateY(-10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        bounceSubtle: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* Responsive table improvements */
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+    
+    {{ADDITIONAL_STYLES}}
+</head>
+<body class="h-full font-sans antialiased">
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <div class="min-h-full">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <!-- Logo and main nav -->
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <i class="fas fa-boxes text-2xl text-primary-600 mr-3"></i>
+                            <span class="text-xl font-bold text-gray-900">Inventixor</span>
+                        </div>
+                        
+                        <!-- Desktop Navigation -->
+                        <div class="hidden md:flex md:ml-8 md:space-x-1">
+                            <a href="dashboard.php" class="{{DASHBOARD_ACTIVE}} flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-tachometer-alt mr-2"></i>
+                                Dashboard
+                            </a>
+                            <a href="productos.php" class="{{PRODUCTOS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-box mr-2"></i>
+                                Productos
+                            </a>
+                            <a href="categorias.php" class="{{CATEGORIAS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-tags mr-2"></i>
+                                Categorías
+                            </a>
+                            <a href="subcategorias.php" class="{{SUBCATEGORIAS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-tag mr-2"></i>
+                                Subcategorías
+                            </a>
+                            <a href="proveedores.php" class="{{PROVEEDORES_ACTIVE}} flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-truck mr-2"></i>
+                                Proveedores
+                            </a>
+                            <a href="salidas.php" class="{{SALIDAS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-shipping-fast mr-2"></i>
+                                Salidas
+                            </a>
+                            <a href="reportes.php" class="{{REPORTES_ACTIVE}} flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Reportes
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- User menu -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-600 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg transition-colors">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+                        
+                        <!-- User dropdown -->
+                        <div class="relative">
+                            <button class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors" id="user-menu-button">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-white text-sm"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700"><?= $_SESSION['user']['nombres'] ?? 'Usuario' ?></span>
+                                </div>
+                                <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+                            </button>
+                            
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 hidden" id="user-menu">
+                                <a href="usuarios.php" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-users mr-3 text-gray-400"></i>
+                                    Usuarios
+                                </a>
+                                <a href="alertas.php" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-exclamation-triangle mr-3 text-gray-400"></i>
+                                    Alertas
+                                </a>
+                                <hr class="my-2 border-gray-200">
+                                <a href="logout.php" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                    <i class="fas fa-sign-out-alt mr-3"></i>
+                                    Cerrar Sesión
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Mobile menu button -->
+                        <button class="md:hidden p-2 text-gray-600 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg transition-colors" id="mobile-menu-button">
+                            <i class="fas fa-bars text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div class="md:hidden hidden bg-white border-t border-gray-200" id="mobile-menu">
+                <div class="px-4 py-3 space-y-1">
+                    <a href="dashboard.php" class="{{DASHBOARD_ACTIVE}} flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        Dashboard
+                    </a>
+                    <a href="productos.php" class="{{PRODUCTOS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        <i class="fas fa-box mr-3"></i>
+                        Productos
+                    </a>
+                    <a href="categorias.php" class="{{CATEGORIAS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        <i class="fas fa-tags mr-3"></i>
+                        Categorías
+                    </a>
+                    <a href="subcategorias.php" class="{{SUBCATEGORIAS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        <i class="fas fa-tag mr-3"></i>
+                        Subcategorías
+                    </a>
+                    <a href="proveedores.php" class="{{PROVEEDORES_ACTIVE}} flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        <i class="fas fa-truck mr-3"></i>
+                        Proveedores
+                    </a>
+                    <a href="salidas.php" class="{{SALIDAS_ACTIVE}} flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        <i class="fas fa-shipping-fast mr-3"></i>
+                        Salidas
+                    </a>
+                    <a href="reportes.php" class="{{REPORTES_ACTIVE}} flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Reportes
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                                <i class="{{MODULE_ICON}} text-primary-600 text-lg"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">{{MODULE_TITLE}}</h1>
+                            <p class="text-sm text-gray-600 mt-1">{{MODULE_SUBTITLE}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {{MODULE_CONTENT}}
+        </main>
+    </div>
+
+    <!-- Base JavaScript -->
+    <script>
+        // Navigation active states
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set active navigation states
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('nav a');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('bg-primary-100', 'text-primary-700');
+                    link.classList.remove('text-gray-600', 'hover:text-gray-900');
+                } else {
+                    link.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-50');
+                    link.classList.remove('bg-primary-100', 'text-primary-700');
+                }
+            });
+
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                    const icon = this.querySelector('i');
+                    if (mobileMenu.classList.contains('hidden')) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                });
+            }
+
+            // User menu toggle
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenu = document.getElementById('user-menu');
+            
+            if (userMenuButton && userMenu) {
+                userMenuButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userMenu.classList.toggle('hidden');
+                });
+
+                // Close user menu when clicking outside
+                document.addEventListener('click', function() {
+                    userMenu.classList.add('hidden');
+                });
+            }
+        });
+
+        // Notification System
+        class NotificationSystem {
+            static show(message, type = 'info', duration = 5000) {
+                const container = document.getElementById('notification-container');
+                if (!container) return;
+
+                const notification = document.createElement('div');
+                notification.className = `max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 transform transition-all duration-300 ease-in-out translate-x-full opacity-0`;
+                
+                const typeConfig = {
+                    success: { icon: 'fas fa-check-circle', color: 'text-green-500', bgColor: 'bg-green-50', borderColor: 'border-green-200' },
+                    error: { icon: 'fas fa-exclamation-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
+                    warning: { icon: 'fas fa-exclamation-triangle', color: 'text-yellow-500', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' },
+                    info: { icon: 'fas fa-info-circle', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' }
+                };
+
+                const config = typeConfig[type] || typeConfig.info;
+                
+                notification.innerHTML = `
+                    <div class="flex p-4">
+                        <div class="flex-shrink-0">
+                            <i class="${config.icon} ${config.color}"></i>
+                        </div>
+                        <div class="ml-3 w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900">${message}</p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0 flex">
+                            <button class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" onclick="this.closest('.max-w-sm').remove()">
+                                <i class="fas fa-times text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(notification);
+
+                // Animate in
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full', 'opacity-0');
+                    notification.classList.add('translate-x-0', 'opacity-100');
+                }, 100);
+
+                // Auto remove
+                if (duration > 0) {
+                    setTimeout(() => {
+                        notification.classList.add('translate-x-full', 'opacity-0');
+                        setTimeout(() => notification.remove(), 300);
+                    }, duration);
+                }
+            }
+        }
+
+        // Global notification function for backwards compatibility
+        window.showNotification = NotificationSystem.show;
+    </script>
+
+    {{NOTIFICATION_SCRIPT}}
+    {{ADDITIONAL_SCRIPTS}}
+</body>
+</html>

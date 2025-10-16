@@ -29,7 +29,7 @@ $alertas_count = count(Alerta::getAll());
     <title>Dashboard - Inventixor</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
@@ -48,6 +48,21 @@ $alertas_count = count(Alerta::getAll());
             background-color: #f8f9fa;
         }
         
+        /* Botón hamburguesa para móviles */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        
         .sidebar {
             position: fixed;
             top: 0;
@@ -58,6 +73,7 @@ $alertas_count = count(Alerta::getAll());
             color: white;
             z-index: 1000;
             overflow-y: auto;
+            transition: transform 0.3s ease;
         }
         
         .sidebar-header {
@@ -97,6 +113,19 @@ $alertas_count = count(Alerta::getAll());
         .main-content {
             margin-left: var(--sidebar-width);
             padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* Overlay para móviles */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
         }
         
         .stats-card {
@@ -126,11 +155,82 @@ $alertas_count = count(Alerta::getAll());
             border-radius: 15px;
             margin-bottom: 2rem;
         }
+        
+        /* Media Queries para Responsividad */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .sidebar-overlay.active {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                padding-top: 70px; /* Espacio para el botón hamburguesa */
+            }
+            
+            .welcome-header {
+                padding: 1.5rem;
+                text-align: center;
+            }
+            
+            .welcome-header .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .stats-card {
+                margin-bottom: 1rem;
+            }
+            
+            .stats-number {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0.5rem;
+                padding-top: 70px;
+            }
+            
+            .welcome-header {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .stats-card {
+                padding: 1rem;
+            }
+            
+            .col-md-4, .col-md-3 {
+                margin-bottom: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3><i class="fas fa-boxes"></i> Inventixor</h3>
             <p class="mb-0">Sistema de Inventario</p>
@@ -193,11 +293,6 @@ $alertas_count = count(Alerta::getAll());
                 </a>
             </li>
             <li class="menu-item">
-                <a href="ia_ayuda.php" class="menu-link">
-                    <i class="fas fa-robot me-2"></i> Asistente IA
-                </a>
-            </li>
-            <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
                 </a>
@@ -230,15 +325,6 @@ if (is_array($user) && isset($user['rol']) && $user['rol']) {
     echo 'N/A';
 }
 ?></span></p>
-                    <!-- Información de debug temporal -->
-                    <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px;">
-                        <strong>Debug Info:</strong><br>
-                        User type: <?php echo gettype($user); ?><br>
-                        User content: <?php echo htmlspecialchars(json_encode($user)); ?><br>
-                        Session user: <?php echo htmlspecialchars(json_encode($_SESSION['user'] ?? 'No definido')); ?><br>
-                        <strong>Índices del array $user:</strong><br>
-                        <?php if (is_array($user)) { foreach(array_keys($user) as $key) { echo htmlspecialchars($key) . ' | '; } } ?>
-                    </div>
                 </div>
                 <a href="logout.php" class="btn btn-light">
                     <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
@@ -357,16 +443,6 @@ if (is_array($user) && isset($user['rol']) && $user['rol']) {
                 </div>
             </div>
             
-            <div class="col-md-3 mb-3">
-                <div class="stats-card text-center">
-                    <i class="fas fa-robot text-dark fa-2x mb-3"></i>
-                    <h6>Asistente IA</h6>
-                    <a href="ia_ayuda.php" class="btn btn-dark btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i>Ir
-                    </a>
-                </div>
-            </div>
-            
             <?php if ($_SESSION['rol'] === 'admin'): ?>
             <div class="col-md-3 mb-3">
                 <div class="stats-card text-center">
@@ -441,12 +517,35 @@ if (is_array($user) && isset($user['rol']) && $user['rol']) {
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- JavaScript personalizado -->
     <script>
-        // Animaciones al cargar
+        // Función para toggle del sidebar en móviles
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        
+        // Cerrar sidebar al hacer click en un enlace (solo en móviles)
         document.addEventListener('DOMContentLoaded', function() {
+            const menuLinks = document.querySelectorAll('.menu-link');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            menuLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Animaciones al cargar
             const statsCards = document.querySelectorAll('.stats-card');
             statsCards.forEach((card, index) => {
                 card.style.opacity = '0';
@@ -457,6 +556,14 @@ if (is_array($user) && isset($user['rol']) && $user['rol']) {
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
                 }, index * 100);
+            });
+            
+            // Manejar cambios de tamaño de ventana
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 76) {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                }
             });
         });
         

@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 require_once 'app/helpers/Database.php';
 require_once 'app/helpers/SistemaNotificaciones.php';
+require_once 'includes/responsive-helper.php';
 
 $db = new Database();
 $sistemaNotificaciones = new SistemaNotificaciones($db);
@@ -197,625 +198,500 @@ if (isset($_GET['msg'])) {
             break;
     }
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Subcategorías - Inventixor</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="public/css/style.css">
-    
-    <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --sidebar-width: 280px;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .sidebar-header {
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .sidebar-menu {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-        
-        .menu-item {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .menu-link {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .menu-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            padding-left: 2rem;
-        }
-        
-        .menu-link.active {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 2rem;
-        }
-        
-        .main-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            border-radius: 15px;
-        }
-        
-        .stats-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .filter-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-        
-        .table-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .btn-action {
-            margin: 0 2px;
-            padding: 0.25rem 0.5rem;
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-boxes"></i> Inventixor</h3>
-            <p class="mb-0">Sistema de Inventario</p>
-        </div>
-        
-        <ul class="sidebar-menu">
-            <li class="menu-item">
-                <a href="dashboard.php" class="menu-link">
-                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="productos.php" class="menu-link">
-                    <i class="fas fa-box me-2"></i> Productos
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="categorias.php" class="menu-link">
-                    <i class="fas fa-tags me-2"></i> Categorías
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="subcategorias.php" class="menu-link active">
-                    <i class="fas fa-tag me-2"></i> Subcategorías
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="proveedores.php" class="menu-link">
-                    <i class="fas fa-truck me-2"></i> Proveedores
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="salidas.php" class="menu-link">
-                    <i class="fas fa-sign-out-alt me-2"></i> Salidas
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="reportes.php" class="menu-link">
-                    <i class="fas fa-chart-bar me-2"></i> Reportes
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="alertas.php" class="menu-link">
-                    <i class="fas fa-exclamation-triangle me-2"></i> Alertas
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="usuarios.php" class="menu-link">
-                    <i class="fas fa-users me-2"></i> Usuarios
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="ia_ayuda.php" class="menu-link">
-                    <i class="fas fa-robot me-2"></i> Asistente IA
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="logout.php" class="menu-link">
-                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                </a>
-            </li>
-        </ul>
-    </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Header -->
-        <div class="main-header">
-            <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2><i class="fas fa-tag me-2"></i>Gestión de Subcategorías</h2>
-                        <p class="mb-0">Administra las subcategorías organizadas por categorías</p>
+// Generar estadísticas generales
+$stats_result = $db->conn->query("SELECT 
+    COUNT(*) AS total_subcategorias,
+    COUNT(DISTINCT s.id_categ) AS total_categorias_con_sub,
+    (SELECT COUNT(*) FROM Categoria) AS total_categorias
+    FROM Subcategoria s");
+$stats = $stats_result->fetch_assoc();
+
+// Configuración de la página responsiva
+$pageConfig = array_merge(ResponsivePageHelper::setActiveModule('subcategorias'), [
+    'MODULE_TITLE' => 'Gestión de Subcategorías',
+    'MODULE_DESCRIPTION' => 'Administración de subcategorías del sistema Inventixor',
+    'MODULE_ICON' => 'fas fa-tag',
+    'MODULE_SUBTITLE' => 'Administrar subcategorías y su relación con categorías principales',
+    'ADDITIONAL_STYLES' => ResponsivePageHelper::getModuleStyles('subcategorias'),
+    'USER_MENU' => ResponsivePageHelper::getUserMenu($_SESSION['rol'] ?? ''),
+    'NOTIFICATION_SCRIPT' => ResponsivePageHelper::getNotificationScript(),
+    'ADDITIONAL_SCRIPTS' => ResponsivePageHelper::getTableScripts('subcategoriasTable') . ResponsivePageHelper::getFormScripts()
+]);
+
+// Capturar el contenido del módulo
+ob_start();
+?>
+
+<!-- Stats Cards -->
+<div class="container-fluid mb-4">
+    <div class="row g-3">
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card stat-card bg-light border-0 shadow-sm animate-fade-in" style="animation-delay: 0.1s">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon me-3 rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="fas fa-tag fa-2x text-primary"></i>
                     </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="badge bg-light text-dark">
-                            Rol: <?= htmlspecialchars($_SESSION['rol']??'') ?>
-                        </span>
+                    <div class="stat-info">
+                        <h3 class="mb-0 text-primary"><?php echo $stats['total_subcategorias']; ?></h3>
+                        <p class="mb-0 text-secondary">Total Subcategorías</p>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Filtros y búsqueda -->
-        <div class="filter-card animate-fade-in">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5><i class="fas fa-filter me-2"></i>Filtros y Búsqueda</h5>
-                <div class="d-flex gap-2">
-                    <a href="reportes.php?tabla=subcategorias" class="btn btn-primary">
-                        <i class="fas fa-file-alt me-2"></i>Reporte de Subcategorías
-                    </a>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
-                        <i class="fas fa-plus me-2"></i>Nueva Subcategoría
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card stat-card bg-light border-0 shadow-sm animate-fade-in" style="animation-delay: 0.2s">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon me-3 rounded-circle bg-success bg-opacity-10 p-3">
+                        <i class="fas fa-tags fa-2x text-success"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="mb-0 text-success"><?php echo $stats['total_categorias']; ?></h3>
+                        <p class="mb-0 text-secondary">Categorías Principales</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card stat-card bg-light border-0 shadow-sm animate-fade-in" style="animation-delay: 0.3s">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon me-3 rounded-circle bg-info bg-opacity-10 p-3">
+                        <i class="fas fa-sitemap fa-2x text-info"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="mb-0 text-info"><?php echo $stats['total_categorias_con_sub']; ?></h3>
+                        <p class="mb-0 text-secondary">Categorías con Subcategorías</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros y acciones -->
+<div class="container-fluid mb-4">
+    <div class="card animate-slide-up" style="animation-delay: 0.4s">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-6">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros y Búsqueda</h5>
+                </div>
+                <div class="col-12 col-md-6 text-md-end mt-2 mt-md-0">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#crearSubcategoriaModal">
+                        <i class="fas fa-plus me-1"></i>Nueva Subcategoría
                     </button>
                 </div>
             </div>
-            <div class="row align-items-end">
-                <div class="col-md-4">
-                    <label for="filtroInput" class="form-label">Buscar por nombre:</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" id="filtroInput" class="form-control" placeholder="Filtrar por nombre" value="<?= htmlspecialchars($filtro) ?>">
-                    </div>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-12 col-md-5">
+                    <label for="filtro" class="form-label">Buscar:</label>
+                    <input type="text" class="form-control" id="filtro" name="filtro" 
+                           value="<?php echo htmlspecialchars($filtro); ?>" 
+                           placeholder="Nombre o descripción...">
                 </div>
-                <div class="col-md-4">
-                    <label for="categoriaFiltro" class="form-label">Filtrar por categoría:</label>
-                    <select id="categoriaFiltro" class="form-select">
+                <div class="col-12 col-md-4">
+                    <label for="categoria_filtro" class="form-label">Categoría:</label>
+                    <select class="form-select" id="categoria_filtro" name="categoria_filtro">
                         <option value="">Todas las categorías</option>
-                        <?php foreach($categorias as $cat): ?>
-                            <option value="<?= $cat['id_categ'] ?>" <?= $categoria_filtro == $cat['id_categ'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($cat['nombre']) ?>
-                            </option>
+                        <?php foreach ($categorias as $cat): ?>
+                        <option value="<?php echo $cat['id_categ']; ?>" 
+                                <?php echo $categoria_filtro == $cat['id_categ'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($cat['nombre']); ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100" onclick="aplicarFiltros()">
-                        <i class="fas fa-search me-1"></i>Filtrar
-                    </button>
+                <div class="col-12 col-md-3 d-flex align-items-end">
+                    <div class="btn-group w-100" role="group">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                        <a href="subcategorias.php" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Limpiar
+                        </a>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
-                        <i class="fas fa-times me-1"></i>Limpiar
-                    </button>
-                </div>
-            </div>
+            </form>
         </div>
-        
-        <!-- Tabla de subcategorías -->
-        <div class="table-card animate-fade-in">
+    </div>
+</div>
+
+<!-- Tabla de subcategorías -->
+<div class="container-fluid">
+    <div class="card animate-slide-up" style="animation-delay: 0.5s">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Lista de Subcategorías</h5>
+        </div>
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white;">
+                <table class="table table-hover" id="subcategoriasTable">
+                    <thead class="table-dark">
                         <tr>
-                            <th><i class="fas fa-hashtag me-1"></i>ID</th>
-                            <th><i class="fas fa-tag me-1"></i>Nombre</th>
-                            <th><i class="fas fa-tags me-1"></i>Categoría</th>
-                            <th><i class="fas fa-align-left me-1"></i>Descripción</th>
-                            <th><i class="fas fa-box me-1"></i>Productos</th>
-                            <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Categoría Principal</th>
+                            <th>Productos</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                    <?php while($row = $result->fetch_assoc()): ?>
+                        <?php while ($row = $result->fetch_assoc()): ?>
                         <tr>
-                            <td><span class="badge bg-primary"><?= $row['id_subcg'] ?></span></td>
-                            <td><strong><?= htmlspecialchars($row['nombre']) ?></strong></td>
                             <td>
-                                <span class="badge bg-success">
-                                    <?= htmlspecialchars($row['categoria_nombre'] ?? 'Sin categoría') ?>
-                                </span>
-                            </td>
-                            <td><?= htmlspecialchars($row['descripcion']) ?></td>
-                            <td>
-                                <span class="badge bg-info">
-                                    <?= $row['total_productos'] ?> productos
-                                </span>
+                                <span class="badge bg-light text-dark border border-secondary"><?php echo $row['id_subcg']; ?></span>
                             </td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-outline-info btn-action" 
-                                            onclick="verDetalleSubcategoria(<?= $row['id_subcg'] ?>)"
-                                            title="Ver Detalle">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary btn-action" 
-                                            onclick="editarSubcategoria(<?= $row['id_subcg'] ?>, '<?= addslashes($row['nombre']) ?>', '<?= addslashes($row['descripcion']) ?>', <?= $row['id_categ'] ?>)"
-                                            title="Editar Subcategoría">
+                                <strong><?php echo htmlspecialchars($row['nombre']); ?></strong>
+                            </td>
+                            <td>
+                                <span class="text-muted">
+                                    <?php echo !empty($row['descripcion']) ? htmlspecialchars($row['descripcion']) : 'Sin descripción'; ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary">
+                                    <i class="fas fa-tags me-1"></i>
+                                    <?php echo htmlspecialchars($row['categoria_nombre']); ?>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info bg-opacity-10 text-info">
+                                    <?php echo $row['total_productos']; ?> productos
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-primary" 
+                                            onclick="editarSubcategoria(<?php echo htmlspecialchars(json_encode($row)); ?>)"
+                                            title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    
-                                    <?php if ($_SESSION['rol'] !== 'auxiliar'): ?>
-                                    <button type="button" class="btn btn-outline-danger btn-action"
-                                            onclick="confirmarEliminar(<?= $row['id_subcg'] ?>, '<?= addslashes($row['nombre']) ?>')"
-                                            title="Eliminar Subcategoría">
+                                    <?php if ($row['total_productos'] == 0): ?>
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="confirmarEliminar(<?php echo $row['id_subcg']; ?>, '<?php echo htmlspecialchars($row['nombre']); ?>')"
+                                            title="Eliminar">
                                         <i class="fas fa-trash"></i>
+                                    </button>
+                                    <?php else: ?>
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            disabled title="No se puede eliminar: tiene productos asociados">
+                                        <i class="fas fa-ban"></i>
                                     </button>
                                     <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
-                    <?php endwhile; ?>
+                        <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Modal para crear subcategoría -->
-    <div class="modal fade" id="createModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white;">
-                    <h5 class="modal-title">
-                        <i class="fas fa-plus-circle me-2"></i>Nueva Subcategoría
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form method="POST">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="nombreSub" class="form-label">
-                                <i class="fas fa-tag me-1"></i>Nombre de la Subcategoría
-                            </label>
-                            <input type="text" name="nombre" id="nombreSub" class="form-control" 
-                                   placeholder="Ej: Zapatos de Running" required maxlength="100">
-                        </div>
-                        <div class="mb-3">
-                            <label for="categoriaSub" class="form-label">
-                                <i class="fas fa-tags me-1"></i>Categoría Padre
-                            </label>
-                            <select name="id_categ" id="categoriaSub" class="form-select" required>
-                                <option value="">Seleccione una categoría</option>
-                                <?php foreach($categorias as $cat): ?>
-                                    <option value="<?= $cat['id_categ'] ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="descripcionSub" class="form-label">
-                                <i class="fas fa-align-left me-1"></i>Descripción
-                            </label>
-                            <textarea name="descripcion" id="descripcionSub" class="form-control" rows="3"
-                                    placeholder="Descripción detallada de la subcategoría" required maxlength="255"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" name="crear_subcategoria" class="btn btn-success">
-                            <i class="fas fa-save me-2"></i>Guardar
-                        </button>
-                    </div>
-                </form>
+<?php
+// Completar el contenido del módulo y generar la página
+$moduleContent = ob_get_clean();
+$pageConfig['MODULE_CONTENT'] = $moduleContent;
+?>
+
+<!-- Modales responsivos -->
+<div class="modal fade" id="crearSubcategoriaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Crear Nueva Subcategoría
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal para editar subcategoría -->
-    <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header" style="background: linear-gradient(135deg, #ffc107, #ff8f00); color: white;">
-                    <h5 class="modal-title">
-                        <i class="fas fa-edit me-2"></i>Editar Subcategoría
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form method="POST" id="editForm">
-                    <div class="modal-body">
-                        <input type="hidden" name="id_subcg" id="editId">
-                        <div class="mb-3">
-                            <label for="editNombre" class="form-label">
-                                <i class="fas fa-tag me-1"></i>Nombre de la Subcategoría
-                            </label>
-                            <input type="text" name="nombre" id="editNombre" class="form-control" required maxlength="100">
-                        </div>
-                        <div class="mb-3">
-                            <label for="editCategoria" class="form-label">
-                                <i class="fas fa-tags me-1"></i>Categoría Padre
-                            </label>
-                            <select name="id_categ" id="editCategoria" class="form-select" required>
-                                <option value="">Seleccione una categoría</option>
-                                <?php foreach($categorias as $cat): ?>
-                                    <option value="<?= $cat['id_categ'] ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editDescripcion" class="form-label">
-                                <i class="fas fa-align-left me-1"></i>Descripción
-                            </label>
-                            <textarea name="descripcion" id="editDescripcion" class="form-control" rows="3" required maxlength="255"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" name="modificar_subcategoria" class="btn btn-warning">
-                            <i class="fas fa-save me-2"></i>Actualizar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de confirmación de eliminación -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
+            <form id="crearSubcategoriaForm" class="needs-validation" novalidate>
                 <div class="modal-body">
-                    <div class="text-center">
-                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-                        <p>¿Está seguro de que desea eliminar la subcategoría?</p>
-                        <div class="alert alert-warning">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Subcategoría:</strong> <span id="subcategoryName"></span>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Nombre de la Subcategoría
+                            </label>
+                            <input type="text" name="nombre" id="nombre" class="form-control" required>
                         </div>
-                        <p class="text-muted">Esta acción no se puede deshacer.</p>
+                        <div class="col-md-6">
+                            <label for="id_categ" class="form-label">
+                                <i class="fas fa-tags me-1"></i>Categoría Principal
+                            </label>
+                            <select name="id_categ" id="id_categ" class="form-select" required>
+                                <option value="">Seleccionar categoría</option>
+                                <?php foreach ($categorias as $cat): ?>
+                                <option value="<?php echo $cat['id_categ']; ?>">
+                                    <?php echo htmlspecialchars($cat['nombre']); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="descripcion" class="form-label">
+                                <i class="fas fa-info-circle me-1"></i>Descripción
+                            </label>
+                            <textarea name="descripcion" id="descripcion" class="form-control" rows="3" 
+                                      placeholder="Descripción de la subcategoría (opcional)"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete">
-                        <i class="fas fa-trash me-2"></i>Eliminar
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Crear Subcategoría
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Modal Ver Detalle Subcategoría -->
-    <div class="modal fade" id="detalleModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-eye me-2"></i>Detalles de Subcategoría
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
+<div class="modal fade" id="editarSubcategoriaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Editar Subcategoría
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editarSubcategoriaForm" class="needs-validation" novalidate>
+                <input type="hidden" name="id_subcg" id="editIdSubcg">
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">ID:</label>
-                            <p id="detalle-id" class="text-muted"></p>
+                            <label for="editNombre" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Nombre de la Subcategoría
+                            </label>
+                            <input type="text" name="nombre" id="editNombre" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Categoría:</label>
-                            <p id="detalle-categoria" class="text-muted"></p>
+                            <label for="editIdCateg" class="form-label">
+                                <i class="fas fa-tags me-1"></i>Categoría Principal
+                            </label>
+                            <select name="id_categ" id="editIdCateg" class="form-select" required>
+                                <option value="">Seleccionar categoría</option>
+                                <?php foreach ($categorias as $cat): ?>
+                                <option value="<?php echo $cat['id_categ']; ?>">
+                                    <?php echo htmlspecialchars($cat['nombre']); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold">Nombre:</label>
-                            <p id="detalle-nombre" class="text-muted"></p>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold">Descripción:</label>
-                            <p id="detalle-descripcion" class="text-muted"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Productos Asociados:</label>
-                            <p id="detalle-productos" class="badge bg-primary fs-6"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Estado:</label>
-                            <p id="detalle-estado" class="badge bg-success fs-6">Activa</p>
+                        <div class="col-12">
+                            <label for="editDescripcion" class="form-label">
+                                <i class="fas fa-info-circle me-1"></i>Descripción
+                            </label>
+                            <textarea name="descripcion" id="editDescripcion" class="form-control" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-2"></i>Guardar Cambios
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <?php if(isset($errorMsg)): ?>
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>Atención:</strong> <?= htmlspecialchars($errorMsg) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    </div>
-    <?php endif; ?>
+<?php
+// Generar la página completa usando el sistema responsivo
+renderResponsivePage($pageConfig);
+?>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Funciones específicas del módulo de subcategorías
+function editarSubcategoria(subcategoria) {
+    // Llenar el formulario de edición
+    document.getElementById('editIdSubcg').value = subcategoria.id_subcg;
+    document.getElementById('editNombre').value = subcategoria.nombre;
+    document.getElementById('editIdCateg').value = subcategoria.id_categ;
+    document.getElementById('editDescripcion').value = subcategoria.descripcion || '';
     
-    <script>
-        let subcategoryToDelete = null;
-        
-        // Función para aplicar filtros
-        function aplicarFiltros() {
-            const filtro = document.getElementById('filtroInput').value;
-            const categoria = document.getElementById('categoriaFiltro').value;
-            let url = 'subcategorias.php?';
-            
-            if (filtro) url += 'filtro=' + encodeURIComponent(filtro) + '&';
-            if (categoria) url += 'categoria=' + encodeURIComponent(categoria) + '&';
-            
-            window.location.href = url.slice(0, -1); // Remover último &
-        }
-        
-        // Función para limpiar filtros
-        function limpiarFiltros() {
-            window.location.href = 'subcategorias.php';
-        }
-        
-        // Función para ver detalle de subcategoría
-        function verDetalleSubcategoria(id) {
-            fetch(`subcategorias.php?detalle=${id}`)
-                .then(response => response.json())
-                .then(data => {
-                    if(data.success) {
-                        document.getElementById('detalle-id').textContent = data.subcategoria.id_subcg;
-                        document.getElementById('detalle-nombre').textContent = data.subcategoria.nombre;
-                        document.getElementById('detalle-descripcion').textContent = data.subcategoria.descripcion || 'Sin descripción';
-                        document.getElementById('detalle-categoria').textContent = data.subcategoria.categoria_nombre;
-                        document.getElementById('detalle-productos').textContent = data.subcategoria.productos_count + ' productos';
-                        new bootstrap.Modal(document.getElementById('detalleModal')).show();
-                    } else {
-                        alert('Error al cargar detalles: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al cargar los detalles');
-                });
-        }
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('editarSubcategoriaModal'));
+    modal.show();
+}
 
-        // Función para editar subcategoría
-        function editarSubcategoria(id, nombre, descripcion, id_categ) {
-            document.getElementById('editId').value = id;
-            document.getElementById('editNombre').value = nombre;
-            document.getElementById('editDescripcion').value = descripcion;
-            document.getElementById('editCategoria').value = id_categ;
-            new bootstrap.Modal(document.getElementById('editModal')).show();
+function confirmarEliminar(id_subcg, nombre) {
+    if (confirm(`¿Está seguro de que desea eliminar la subcategoría "${nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+        window.location.href = `subcategorias.php?eliminar=${id_subcg}`;
+    }
+}
+
+// Event listeners para formularios
+document.addEventListener('DOMContentLoaded', function() {
+    // Formulario crear subcategoría
+    const crearForm = document.getElementById('crearSubcategoriaForm');
+    crearForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (this.checkValidity()) {
+            const formData = new FormData(this);
+            enviarFormularioSubcategoria(formData, 'crear');
         }
-        
-        // Función para confirmar eliminación
-        function confirmarEliminar(id, nombre) {
-            subcategoryToDelete = id;
-            document.getElementById('subcategoryName').textContent = nombre;
-            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        this.classList.add('was-validated');
+    });
+
+    // Formulario editar subcategoría  
+    const editarForm = document.getElementById('editarSubcategoriaForm');
+    editarForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (this.checkValidity()) {
+            const formData = new FormData(this);
+            enviarFormularioSubcategoria(formData, 'editar');
         }
+        this.classList.add('was-validated');
+    });
+});
+
+async function enviarFormularioSubcategoria(formData, action) {
+    try {
+        formData.append('action', action);
         
-        // Procesar eliminación
-        document.getElementById('confirmDelete').addEventListener('click', function() {
-            if (subcategoryToDelete) {
-                window.location.href = `subcategorias.php?eliminar=${subcategoryToDelete}`;
-            }
+        const response = await fetch('subcategorias.php', {
+            method: 'POST',
+            body: formData
         });
         
-        // Enter en filtros
-        document.getElementById('filtroInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                aplicarFiltros();
+        if (response.ok) {
+            if (typeof ResponsiveUtils !== 'undefined') {
+                ResponsiveUtils.showNotification(`Subcategoría ${action === 'crear' ? 'creada' : 'actualizada'} exitosamente`, 'success');
             }
-        });
-        
-        // Animaciones al cargar
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.animate-fade-in');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            throw new Error('Error en la respuesta del servidor');
+        }
+    } catch (error) {
+        if (typeof ResponsiveUtils !== 'undefined') {
+            ResponsiveUtils.showNotification('Error al procesar la solicitud: ' + error.message, 'error');
+        }
+    }
+}
+</script>
+
+<?php
+// Procesamiento AJAX para operaciones CRUD
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    
+    try {
+        switch ($action) {
+            case 'create':
+            case 'update':
+                $id = $_POST['id'] ?? null;
+                $nombre = trim($_POST['nombre'] ?? '');
+                $descripcion = trim($_POST['descripcion'] ?? '');
+                $id_categoria = intval($_POST['id_categoria'] ?? 0);
                 
-                setTimeout(() => {
-                    card.style.transition = 'all 0.6s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 200);
-            });
-
-            // Sistema de notificaciones automáticas
-            <?php if ($show_notification): ?>
-            setTimeout(function() {
-                const notificationSystem = new NotificationSystem();
-                <?php if ($show_notification === 'created'): ?>
-                notificationSystem.showSubcategoryChange('create', 'Subcategoría creada exitosamente', 'success');
-                <?php elseif ($show_notification === 'updated'): ?>
-                notificationSystem.showSubcategoryChange('update', 'Subcategoría actualizada exitosamente', 'success');
-                <?php elseif ($show_notification === 'deleted'): ?>
-                notificationSystem.showSubcategoryChange(
-                    'delete', 
-                    'Subcategoría "<?= htmlspecialchars($subcategoria_eliminada['nombre']) ?>" (ID: <?= $subcategoria_eliminada['id'] ?>) eliminada del sistema', 
-                    'warning',
-                    {
-                        id: <?= $subcategoria_eliminada['id'] ?>,
-                        nombre: '<?= htmlspecialchars($subcategoria_eliminada['nombre']) ?>'
+                // Validaciones
+                if (empty($nombre)) {
+                    throw new Exception('El nombre es obligatorio');
+                }
+                
+                if ($id_categoria <= 0) {
+                    throw new Exception('Debe seleccionar una categoría válida');
+                }
+                
+                // Verificar que la categoría existe
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM categorias WHERE id = ?");
+                $stmt->execute([$id_categoria]);
+                if ($stmt->fetchColumn() == 0) {
+                    throw new Exception('La categoría seleccionada no existe');
+                }
+                
+                // Verificar duplicados
+                if ($action === 'create') {
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM subcategorias WHERE nombre = ? AND id_categoria = ?");
+                    $stmt->execute([$nombre, $id_categoria]);
+                    if ($stmt->fetchColumn() > 0) {
+                        throw new Exception('Ya existe una subcategoría con ese nombre en la categoría seleccionada');
                     }
-                );
-                <?php endif; ?>
-            }, 500);
-            <?php endif; ?>
-        });
-    </script>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Sistema de Notificaciones -->
-    <script src="public/js/notifications.js"></script>
-    <script src="public/js/auto-notifications.js"></script>
-</body>
-</html>
+                } else {
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM subcategorias WHERE nombre = ? AND id_categoria = ? AND id != ?");
+                    $stmt->execute([$nombre, $id_categoria, $id]);
+                    if ($stmt->fetchColumn() > 0) {
+                        throw new Exception('Ya existe una subcategoría con ese nombre en la categoría seleccionada');
+                    }
+                }
+                
+                if ($action === 'create') {
+                    $stmt = $pdo->prepare("INSERT INTO subcategorias (nombre, descripcion, id_categoria, fecha_creacion) VALUES (?, ?, ?, NOW())");
+                    $stmt->execute([$nombre, $descripcion, $id_categoria]);
+                    $mensaje = 'Subcategoría creada exitosamente';
+                } else {
+                    $stmt = $pdo->prepare("UPDATE subcategorias SET nombre = ?, descripcion = ?, id_categoria = ?, fecha_actualizacion = NOW() WHERE id = ?");
+                    $stmt->execute([$nombre, $descripcion, $id_categoria, $id]);
+                    $mensaje = 'Subcategoría actualizada exitosamente';
+                }
+                
+                if (isset($notificaciones)) {
+                    $notificaciones->agregar($mensaje, 'success');
+                }
+                
+                echo json_encode(['success' => true, 'message' => $mensaje]);
+                exit;
+                
+            case 'delete':
+                $id = intval($_POST['id'] ?? 0);
+                
+                if ($id <= 0) {
+                    throw new Exception('ID inválido');
+                }
+                
+                // Verificar si la subcategoría tiene productos asociados
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM productos WHERE id_subcategoria = ?");
+                $stmt->execute([$id]);
+                $productCount = $stmt->fetchColumn();
+                
+                if ($productCount > 0) {
+                    throw new Exception('No se puede eliminar la subcategoría porque tiene ' . $productCount . ' producto(s) asociado(s)');
+                }
+                
+                $stmt = $pdo->prepare("DELETE FROM subcategorias WHERE id = ?");
+                $stmt->execute([$id]);
+                
+                $mensaje = 'Subcategoría eliminada exitosamente';
+                if (isset($notificaciones)) {
+                    $notificaciones->agregar($mensaje, 'success');
+                }
+                
+                echo json_encode(['success' => true, 'message' => $mensaje]);
+                exit;
+                
+            case 'get':
+                $id = intval($_POST['id'] ?? 0);
+                
+                if ($id <= 0) {
+                    throw new Exception('ID inválido');
+                }
+                
+                $stmt = $pdo->prepare("SELECT * FROM subcategorias WHERE id = ?");
+                $stmt->execute([$id]);
+                $subcategoria = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$subcategoria) {
+                    throw new Exception('Subcategoría no encontrada');
+                }
+                
+                echo json_encode(['success' => true, 'data' => $subcategoria]);
+                exit;
+                
+            default:
+                throw new Exception('Acción no válida');
+        }
+        
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        exit;
+    }
+}
+?>
+
+<?php include 'includes/footer.php'; ?>

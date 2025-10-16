@@ -13,7 +13,7 @@ echo "<!DOCTYPE html>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Validación Reportes Inteligentes - Inventixor</title>
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css' rel='stylesheet'>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'>
     <style>
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -39,8 +39,16 @@ echo "<!DOCTYPE html>
 echo "<div class='test-section'>
     <h3><i class='fas fa-database me-2'></i>1. Conexión a Base de Datos</h3>";
 
+// Cachear el resultado de ping para reutilizarlo en el resumen
+$conexion_ok = false;
 try {
-    if ($conn->ping()) {
+    if (method_exists($conn, 'ping')) {
+        $conexion_ok = @$conn->ping();
+    } else {
+        // Fallback por si la extensión o método no está disponible
+        $conexion_ok = $conn->query('SELECT 1') ? true : false;
+    }
+    if ($conexion_ok) {
         echo "<div class='test-result test-success'>
             <i class='fas fa-check me-2'></i><strong>✅ Conexión exitosa</strong><br>
             Base de datos MySQL conectada correctamente
@@ -60,6 +68,8 @@ echo "<div class='test-section'>
     <h3><i class='fas fa-table me-2'></i>2. Verificación de Tablas</h3>";
 
 $tablas_requeridas = ['Productos', 'Categoria', 'Subcategoria', 'Proveedores', 'Salidas', 'Users'];
+$tablas_requeridas[] = 'Reportes';
+$tablas_requeridas[] = 'HistorialCRUD';
 $tablas_existentes = [];
 $tablas_faltantes = [];
 
@@ -158,7 +168,7 @@ if ($consultas_exitosas === $total_consultas) {
 echo "</div>";
 
 // Test 5: Datos de ejemplo para cada reporte
-if ($datos_tablas['Productos'] > 0) {
+if (isset($datos_tablas['Productos']) && $datos_tablas['Productos'] > 0) {
     echo "<div class='test-section'>
         <h3><i class='fas fa-eye me-2'></i>5. Vista Previa de Datos</h3>";
     
@@ -198,7 +208,7 @@ if ($datos_tablas['Productos'] > 0) {
     }
     
     // Productos Críticos
-    if ($datos_tablas['Productos'] > 0) {
+    if (isset($datos_tablas['Productos']) && $datos_tablas['Productos'] > 0) {
         $result = $conn->query("SELECT COUNT(*) as criticos FROM Productos WHERE CAST(stock AS UNSIGNED) <= 5");
         $criticos = $result->fetch_assoc()['criticos'];
         
@@ -313,6 +323,44 @@ if (empty($recomendaciones)) {
 
 echo "</div>";
 
+// Test 4.1: Validar estructura de reportes guardados y compatibilidad con eliminación
+echo "<div class='test-section'>
+    <h3><i class='fas fa-file-alt me-2'></i>4.1. Validación de Estructura de Reportes</h3>";
+
+$estructura_ok = false;
+if (in_array('Reportes', $tablas_existentes)) {
+    try {
+        $resCols = $conn->query("SHOW COLUMNS FROM Reportes LIKE 'id_repor'");
+        $resUser = $conn->query("SHOW COLUMNS FROM Reportes LIKE 'num_doc'");
+        if ($resCols && $resCols->num_rows > 0 && $resUser && $resUser->num_rows > 0) {
+            echo "<div class='test-result test-success'><i class='fas fa-check me-2'></i>Columnas requeridas <strong>id_repor</strong> y <strong>num_doc</strong> existen</div>";
+            $estructura_ok = true;
+            $sample = $conn->query("SELECT id_repor, num_doc FROM Reportes ORDER BY id_repor DESC LIMIT 1");
+            if ($sample && $sample->num_rows > 0) {
+                $row = $sample->fetch_assoc();
+                echo "<div class='test-result test-success'><i class='fas fa-check me-2'></i>Muestra encontrada: id_repor=".intval($row['id_repor']).", num_doc=".htmlspecialchars($row['num_doc'])."</div>";
+            } else {
+                echo "<div class='test-result test-warning'><i class='fas fa-exclamation-triangle me-2'></i>La tabla Reportes no tiene datos de muestra</div>";
+            }
+        } else {
+            echo "<div class='test-result test-error'><i class='fas fa-times me-2'></i>Faltan columnas requeridas en la tabla Reportes (se requieren id_repor y num_doc)</div>";
+        }
+    } catch (Exception $e) {
+        echo "<div class='test-result test-error'><i class='fas fa-times me-2'></i>Error verificando Reportes: ".htmlspecialchars($e->getMessage())."</div>";
+    }
+} else {
+    echo "<div class='test-result test-warning'><i class='fas fa-exclamation-triangle me-2'></i>La tabla <strong>Reportes</strong> no está disponible; saltando validación de estructura</div>";
+}
+
+// HistorialCRUD existencia
+if (in_array('HistorialCRUD', $tablas_existentes)) {
+    echo "<div class='test-result test-success'><i class='fas fa-check me-2'></i>Tabla <strong>HistorialCRUD</strong> disponible para auditoría</div>";
+} else {
+    echo "<div class='test-result test-warning'><i class='fas fa-exclamation-triangle me-2'></i>Tabla <strong>HistorialCRUD</strong> no existe; no se registrarán auditorías de eliminación</div>";
+}
+
+echo "</div>";
+
 // Resumen final
 echo "<div class='test-section' style='border-left-color: #28a745; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);'>
     <h3><i class='fas fa-trophy me-2'></i>Resumen de Validación</h3>";
@@ -321,9 +369,9 @@ $total_tests = 6;
 $tests_passed = 0;
 
 // Criterios de éxito
-$tests_passed += ($conn->ping() ? 1 : 0);
+$tests_passed += ($conexion_ok ? 1 : 0);
 $tests_passed += (empty($tablas_faltantes) ? 1 : 0);
-$tests_passed += ($datos_tablas['Productos'] > 0 ? 1 : 0);
+$tests_passed += ((isset($datos_tablas['Productos']) && $datos_tablas['Productos'] > 0) ? 1 : 0);
 $tests_passed += ($consultas_exitosas === $total_consultas ? 1 : 0);
 $tests_passed += (file_exists('reportes_inteligentes.php') ? 1 : 0);
 $tests_passed += 1; // Recomendaciones siempre pasan

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="{{MODULE_DESCRIPTION}} - Inventixor">
+    <title>{{MODULE_TITLE}} - Inventixor</title>
+    
+    <!-- Preload de fuentes críticas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Estilos del sistema -->
+    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive.css">
+    
+    <!-- Estilos adicionales del módulo -->
+    {{ADDITIONAL_STYLES}}
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-boxes"></i> Inventixor</h3>
+            <p class="mb-0">Sistema de Inventario</p>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.php" class="menu-link {{DASHBOARD_ACTIVE}}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="productos.php" class="menu-link {{PRODUCTOS_ACTIVE}}">
+                    <i class="fas fa-box"></i> Productos
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="categorias.php" class="menu-link {{CATEGORIAS_ACTIVE}}">
+                    <i class="fas fa-tags"></i> Categorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="subcategorias.php" class="menu-link {{SUBCATEGORIAS_ACTIVE}}">
+                    <i class="fas fa-tag"></i> Subcategorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="proveedores.php" class="menu-link {{PROVEEDORES_ACTIVE}}">
+                    <i class="fas fa-truck"></i> Proveedores
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="salidas.php" class="menu-link {{SALIDAS_ACTIVE}}">
+                    <i class="fas fa-sign-out-alt"></i> Salidas
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="reportes.php" class="menu-link {{REPORTES_ACTIVE}}">
+                    <i class="fas fa-chart-bar"></i> Reportes
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="alertas.php" class="menu-link {{ALERTAS_ACTIVE}}">
+                    <i class="fas fa-bell"></i> Alertas
+                </a>
+            </li>
+            {{USER_MENU}}
+            <li class="menu-item">
+                <a href="logout.php" class="menu-link">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Overlay para móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="main-header text-center animate-fade-in">
+            <div class="container">
+                <h1><i class="{{MODULE_ICON}} me-3"></i>{{MODULE_TITLE}}</h1>
+                <p class="mb-0">{{MODULE_SUBTITLE}}</p>
+            </div>
+        </div>
+
+        <!-- Contenido específico del módulo -->
+        {{MODULE_CONTENT}}
+    </div>
+
+    <!-- Scripts base -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="public/js/responsive.js"></script>
+    <script src="public/js/responsive-table.js"></script>
+    
+    <!-- Scripts adicionales del módulo -->
+    {{ADDITIONAL_SCRIPTS}}
+    
+    <!-- Script de notificaciones común -->
+    <script>
+        // Sistema de notificaciones responsivo
+        if (typeof ResponsiveUtils !== 'undefined') {
+            {{NOTIFICATION_SCRIPT}}
+        }
+    </script>
+</body>
+</html>

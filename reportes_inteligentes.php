@@ -22,9 +22,15 @@ if (isset($_POST['action'])) {
 
 require_once 'config/db.php';
 
+
 $usuario = $_SESSION['user'];
 $es_admin = $usuario['rol'] === 'admin';
 $es_coordinador = $usuario['rol'] === 'coordinador' || $es_admin;
+// Solo admin y coordinador pueden acceder
+if ($usuario['rol'] === 'auxiliar') {
+    header('Location: dashboard.php');
+    exit;
+}
 
 // Manejar solicitudes AJAX para generar reportes PRIMERO
 if (isset($_POST['action'])) {
@@ -45,6 +51,55 @@ if (isset($_POST['action'])) {
     header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
     
     try {
+        $action = $_POST['action'] ?? '';
+        // Acción específica: eliminar reporte guardado (solo admin puede eliminar de otros; el creador puede eliminar el suyo)
+        if ($action === 'eliminar_reporte') {
+            $id_repor = isset($_POST['id_repor']) ? (int)$_POST['id_repor'] : 0;
+            if ($id_repor <= 0) {
+                throw new Exception('ID de reporte inválido');
+            }
+
+            // Verificar existencia y propietario (usar consulta preparada)
+            $sel = $conn->prepare('SELECT num_doc FROM Reportes WHERE id_repor = ?');
+            if (!$sel) { throw new Exception('Error preparando consulta'); }
+            $sel->bind_param('i', $id_repor);
+            $sel->execute();
+            $res = $sel->get_result();
+            if (!$res || !$res->num_rows) {
+                throw new Exception('Reporte no encontrado');
+            }
+            $rowRep = $res->fetch_assoc();
+            $sel->close();
+            $creador = $rowRep['num_doc'];
+            $actual = $usuario['num_doc'] ?? null;
+            $rolActual = $usuario['rol'] ?? '';
+
+            if ($actual === null) {
+                throw new Exception('Usuario no válido');
+            }
+
+            // Regla: el creador puede eliminar su propio reporte; solo admin puede eliminar reportes de otros usuarios
+            if ($creador != $actual && $rolActual !== 'admin') {
+                throw new Exception('No autorizado para eliminar este reporte');
+            }
+
+            $stmtDel = $conn->prepare('DELETE FROM Reportes WHERE id_repor = ?');
+            $stmtDel->bind_param('i', $id_repor);
+            $stmtDel->execute();
+            $stmtDel->close();
+
+            // Registrar en historial solo para admin y coordinador
+            if (in_array($rolActual, ['admin','coordinador'])) {
+                $usuarioNombre = $usuario['nombres'] ?? $usuario['nombre'] ?? ($usuario['name'] ?? 'Usuario');
+                $detalles = json_encode(['id_repor' => $id_repor]);
+                @$conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Reporte', $id_repor, 'eliminar', '".$conn->real_escape_string($usuarioNombre)."', '".$conn->real_escape_string($rolActual)."', '".$conn->real_escape_string($detalles)."')");
+            }
+
+            ob_clean();
+            echo json_encode(['success' => true, 'id_repor' => $id_repor]);
+            exit;
+        }
+
         $tipo_reporte = $_POST['tipo_reporte'] ?? '';
         $datos = [];
         
@@ -496,8 +551,9 @@ if (isset($_POST['action'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes Inteligentes - Inventixor</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
@@ -789,6 +845,87 @@ if (isset($_POST['action'])) {
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-boxes"></i> Inventixor</h3>
+            <p class="mb-0">Sistema de Inventario</p>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.php" class="menu-link">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="productos.php" class="menu-link">
+                    <i class="fas fa-box me-2"></i> Productos
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="categorias.php" class="menu-link">
+                    <i class="fas fa-tags me-2"></i> Categorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="subcategorias.php" class="menu-link">
+                    <i class="fas fa-tag me-2"></i> Subcategorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="historial.php" class="menu-link">
+                    <i class="fas fa-history me-2"></i> Historial
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="proveedores.php" class="menu-link">
+                    <i class="fas fa-truck me-2"></i> Proveedores
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="salidas.php" class="menu-link">
+                    <i class="fas fa-sign-out-alt me-2"></i> Salidas
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="reportes.php" class="menu-link">
+                    <i class="fas fa-chart-bar me-2"></i> Reportes
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="reportes_inteligentes.php" class="menu-link active">
+                    <i class="fas fa-brain me-2"></i> Reportes Inteligentes
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="alertas.php" class="menu-link">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Alertas
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="usuarios.php" class="menu-link">
+                    <i class="fas fa-users me-2"></i> Usuarios
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="logout.php" class="menu-link">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
     <div class="main-container">
         <!-- Header -->
         <div class="text-center mb-5">
@@ -1202,9 +1339,11 @@ if (isset($_POST['action'])) {
             </div>
         </div>
     </div>
+    </div>
+    </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentReportType = '';
         let currentReportData = [];
@@ -1392,33 +1531,80 @@ if (isset($_POST['action'])) {
             const tableBody = document.getElementById('tableBody');
             
             // Generar headers
+            // Determinar si se debe mostrar la columna de Acciones (existe id_repor y num_doc en alguna fila)
+            const addActions = datos.some(r => ('id_repor' in r) && ('num_doc' in r));
+
             tableHeaders.innerHTML = '<tr>' + headers.map(header => 
                 `<th>${header}</th>`
-            ).join('') + '</tr>';
+            ).join('') + (addActions ? '<th>Acciones</th>' : '') + '</tr>';
             
             // Generar filas
-            tableBody.innerHTML = datos.map(row => 
-                '<tr>' + headers.map(header => {
+            // Obtener datos de sesión PHP para rol y usuario actual
+            const usuarioActual = <?php echo json_encode($usuario); ?>;
+            const esAdmin = usuarioActual.rol === 'admin';
+            // Usar num_doc como identificador principal del usuario; fallback a id
+            const idUsuarioActual = (usuarioActual && (usuarioActual.num_doc || usuarioActual.id || usuarioActual.user_id)) ?? null;
+
+            tableBody.innerHTML = datos.map(row => {
+                let rowHtml = '';
+                rowHtml += headers.map(header => {
                     let cellValue = row[header] || '';
-                    
+
                     // Formatear valores especiales
                     if (header.includes('Stock') && !isNaN(cellValue)) {
                         cellValue = parseInt(cellValue).toLocaleString();
                     }
-                    
+
                     if (header === 'Nivel Stock' || header === 'Estado') {
                         const statusClass = `status-${cellValue.toLowerCase()}`;
                         cellValue = `<span class="status-badge ${statusClass}">${cellValue}</span>`;
                     }
-                    
+
                     if (header === 'Fecha' && cellValue.includes('-')) {
                         const date = new Date(cellValue);
                         cellValue = date.toLocaleDateString('es-ES') + ' ' + date.toLocaleTimeString('es-ES');
                     }
-                    
+
                     return `<td>${cellValue}</td>`;
-                }).join('') + '</tr>'
-            ).join('');
+                }).join('');
+
+                // Mostrar columna de acciones solo si fue agregada en el encabezado
+                const tieneEstructuraReporte = ('id_repor' in row) && ('num_doc' in row);
+                if (typeof addActions !== 'undefined' && addActions) {
+                    if (tieneEstructuraReporte) {
+                        const esCreador = String(row['num_doc']) === String(idUsuarioActual);
+                        if (esAdmin || esCreador) {
+                            rowHtml += `<td style="white-space:nowrap"><button class='btn btn-danger btn-sm' onclick='eliminarReporte(${row['id_repor']})'><i class='fas fa-trash me-1'></i>Eliminar</button></td>`;
+                        } else {
+                            rowHtml += `<td></td>`;
+                        }
+                    } else {
+                        // Alinear filas sin estructura de reporte con la columna Acciones vacía
+                        rowHtml += `<td></td>`;
+                    }
+                }
+                return `<tr>${rowHtml}</tr>`;
+            }).join('');
+        }
+
+        // Eliminar reporte guardado
+        function eliminarReporte(idRepor) {
+            if (!confirm('¿Seguro que deseas eliminar este reporte?')) return;
+            const form = new FormData();
+            form.append('action', 'eliminar_reporte');
+            form.append('id_repor', idRepor);
+            fetch('reportes_inteligentes.php', { method: 'POST', body: form })
+                .then(r => r.text()).then(text => {
+                    let data; try { data = JSON.parse(text); } catch(e){ throw new Error(text); }
+                    if (!data.success) throw new Error(data.error || 'No se pudo eliminar');
+                    // Remover fila correspondiente
+                    const btn = document.querySelector(`button[onclick="eliminarReporte(${idRepor})"]`);
+                    if (btn) {
+                        const tr = btn.closest('tr');
+                        if (tr) tr.remove();
+                    }
+                })
+                .catch(err => alert('Error: ' + err.message));
         }
 
         function exportarReporte(formato) {
@@ -1844,8 +2030,8 @@ if (isset($_POST['action'])) {
             
             let html = `
                 <div class="alert alert-success">
-                    <h5><i class="fas fa-robot me-2"></i>Recomendaciones IA</h5>
-                    <p>Sistema inteligente ha identificado ${pedidos.sugerencias.length} productos para reposición: 
+                    <h5><i class="fas fa-lightbulb me-2"></i>Recomendaciones del Sistema</h5>
+                    <p>El sistema ha identificado ${pedidos.sugerencias.length} productos para reposición: 
                        ${criticos} críticos, ${altos} alta prioridad.</p>
                 </div>
                 
@@ -1982,6 +2168,13 @@ if (isset($_POST['action'])) {
                 document.querySelector('.report-card').click();
             }, 1000);
         });
+    </script>
+    
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de reportes inteligentes
+        setActiveMenuItem('reportes_inteligentes.php');
     </script>
 </body>
 </html>

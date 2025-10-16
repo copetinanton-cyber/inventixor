@@ -11,7 +11,7 @@ $es_admin = $usuario['rol'] === 'admin';
 $es_coordinador = $usuario['rol'] === 'coordinador' || $es_admin;
 
 // Solo coordinadores y admins pueden acceder
-if (!$es_coordinador) {
+if ($usuario['rol'] === 'auxiliar') {
     header('Location: dashboard.php');
     exit();
 }
@@ -57,19 +57,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success' => true, 'message' => 'Usuario creado exitosamente']);
                 break;
                 
-            case 'editar':
-                if (!$es_coordinador) {
-                    throw new Exception('No tiene permisos para editar usuarios');
+            case 'eliminar':
+                if (!$es_admin) {
+                    throw new Exception('Solo los administradores pueden eliminar usuarios');
                 }
-                
                 $num_doc = $_POST['num_doc'];
-                $nombres = $_POST['nombres'];
-                $apellidos = $_POST['apellidos'];
-                $telefono = $_POST['telefono'];
-                $correo = $_POST['correo'];
-                $cargo = $_POST['cargo'];
-                $rol = $_POST['rol'];
-                
+                // No permitir eliminar a sí mismo
+                if ($num_doc == $usuario['num_doc']) {
+                    throw new Exception('No puede eliminarse a sí mismo');
+                }
+                $stmt = $pdo->prepare("DELETE FROM usuarios WHERE num_doc = ?");
+                $stmt->execute([$num_doc]);
+                echo json_encode(['success' => true, 'message' => 'Usuario eliminado exitosamente']);
+                break;
                 // Solo admin puede editar roles de admin
                 if ($rol === 'admin' && !$es_admin) {
                     throw new Exception('Solo los administradores pueden asignar el rol de administrador');
@@ -198,7 +198,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
     <title>Gestión de Usuarios - InventiXor</title>
     
     <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -1129,7 +1129,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
     </div>
 
     <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     

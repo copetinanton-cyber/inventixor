@@ -203,7 +203,7 @@ foreach ($reportes_disponibles as $id => $reporte) {
     <title>Reportes Inteligentes - InventiXor</title>
     
     <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js">
     <link rel="stylesheet" href="public/css/reportes-modernos.css">
@@ -818,9 +818,7 @@ foreach ($reportes_disponibles as $id => $reporte) {
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3><i class="fas fa-brain me-2"></i>Análisis Avanzado</h3>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-outline-primary" onclick="generarAnalisisIA()">
-                                <i class="fas fa-robot me-2"></i>Análisis IA
-                            </button>
+
                             <button class="btn btn-outline-success" onclick="generarRecomendaciones()">
                                 <i class="fas fa-lightbulb me-2"></i>Recomendaciones
                             </button>
@@ -884,7 +882,7 @@ foreach ($reportes_disponibles as $id => $reporte) {
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="public/js/notifications.js"></script>

@@ -15,9 +15,17 @@ $sistemaNotificaciones = new SistemaNotificaciones($db);
 if (!isset($_SESSION['rol'])) {
     if (isset($_SESSION['user']['num_doc'])) {
         $num_doc = $_SESSION['user']['num_doc'];
-        $rolRes = $db->conn->query("SELECT rol FROM users WHERE num_doc = '$num_doc'");
-        if ($rolRes && $rolRow = $rolRes->fetch_assoc()) {
-            $_SESSION['rol'] = $rolRow['rol'];
+        // Uso de prepared statement para prevenir inyección y errores por tipos
+        if ($stmtRol = $db->conn->prepare("SELECT rol FROM Users WHERE num_doc = ?")) {
+            $stmtRol->bind_param('s', $num_doc);
+            $stmtRol->execute();
+            $resRol = $stmtRol->get_result();
+            if ($resRol && ($rolRow = $resRol->fetch_assoc())) {
+                $_SESSION['rol'] = $rolRow['rol'] ?? '';
+            } else {
+                $_SESSION['rol'] = '';
+            }
+            $stmtRol->close();
         } else {
             $_SESSION['rol'] = '';
         }
@@ -33,12 +41,23 @@ $puede_editar = $_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'coordinado
 if (isset($_GET['eliminar']) && $puede_editar) {
     $id_producto = intval($_GET['eliminar']);
     
-    // Verificar si tiene salidas asociadas
-    $salidas = $db->conn->query("SELECT COUNT(*) FROM Salidas WHERE id_prod = $id_producto");
-    $alertas = $db->conn->query("SELECT COUNT(*) FROM Alertas WHERE id_prod = $id_producto");
-    
-    $salidaCount = $salidas->fetch_row()[0];
-    $alertaCount = $alertas->fetch_row()[0];
+    // Verificar si tiene salidas/alertas asociadas (prepared statements)
+    $salidaCount = 0;
+    if ($stmtSal = $db->conn->prepare("SELECT COUNT(*) AS c FROM Salidas WHERE id_prod = ?")) {
+        $stmtSal->bind_param('i', $id_producto);
+        $stmtSal->execute();
+        $resSal = $stmtSal->get_result();
+        if ($resSal && ($rowC = $resSal->fetch_assoc())) { $salidaCount = (int)$rowC['c']; }
+        $stmtSal->close();
+    }
+    $alertaCount = 0;
+    if ($stmtAl = $db->conn->prepare("SELECT COUNT(*) AS c FROM Alertas WHERE id_prod = ?")) {
+        $stmtAl->bind_param('i', $id_producto);
+        $stmtAl->execute();
+        $resAl = $stmtAl->get_result();
+        if ($resAl && ($rowA = $resAl->fetch_assoc())) { $alertaCount = (int)$rowA['c']; }
+        $stmtAl->close();
+    }
     
     if ($salidaCount > 0 || $alertaCount > 0) {
         $entidades = [];
@@ -46,7 +65,15 @@ if (isset($_GET['eliminar']) && $puede_editar) {
         if ($alertaCount > 0) $entidades[] = "alertas ($alertaCount)";
         $errorMsg = "No se puede eliminar el producto porque tiene " . implode(' y ', $entidades) . " asociados.";
     } else {
-        $producto_old = $db->conn->query("SELECT * FROM Productos WHERE id_prod = $id_producto")->fetch_assoc();
+        // Obtener snapshot del producto antes de eliminar
+        $producto_old = [];
+        if ($stmtProdOld = $db->conn->prepare("SELECT * FROM Productos WHERE id_prod = ?")) {
+            $stmtProdOld->bind_param('i', $id_producto);
+            $stmtProdOld->execute();
+            $resProdOld = $stmtProdOld->get_result();
+            $producto_old = $resProdOld ? ($resProdOld->fetch_assoc() ?: []) : [];
+            $stmtProdOld->close();
+        }
         $stmt = $db->conn->prepare("DELETE FROM Productos WHERE id_prod = ?");
         $stmt->bind_param('i', $id_producto);
         $stmt->execute();
@@ -75,7 +102,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_producto'])
     $id_subcg = intval($_POST['id_subcg']);
     $id_nit = intval($_POST['id_nit']);
     
-    $producto_old = $db->conn->query("SELECT * FROM Productos WHERE id_prod = $id")->fetch_assoc();
+    // Snapshot del producto antes de actualizar
+    $producto_old = [];
+    if ($stmtOld = $db->conn->prepare("SELECT * FROM Productos WHERE id_prod = ?")) {
+        $stmtOld->bind_param('i', $id);
+        $stmtOld->execute();
+        $resOld = $stmtOld->get_result();
+        $producto_old = $resOld ? ($resOld->fetch_assoc() ?: []) : [];
+        $stmtOld->close();
+    }
     
     $stmt = $db->conn->prepare("UPDATE Productos SET nombre = ?, modelo = ?, talla = ?, color = ?, stock = ?, material = ?, id_subcg = ?, id_nit = ? WHERE id_prod = ?");
     $stmt->bind_param('ssssisiii', $nombre, $modelo, $talla, $color, $stock, $material, $id_subcg, $id_nit, $id);
@@ -125,6 +160,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto']) && 
 $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : '';
 $filtro_categoria = isset($_GET['filtro_categoria']) ? $_GET['filtro_categoria'] : '';
 $filtro_subcategoria = isset($_GET['filtro_subcategoria']) ? $_GET['filtro_subcategoria'] : '';
+$filtro_talla = isset($_GET['filtro_talla']) ? $_GET['filtro_talla'] : '';
+$filtro_color = isset($_GET['filtro_color']) ? $_GET['filtro_color'] : '';
 $filtro_proveedor = isset($_GET['filtro_proveedor']) ? $_GET['filtro_proveedor'] : '';
 
 // Construir consulta con filtros dinámicos
@@ -152,6 +189,27 @@ if (!empty($filtro_categoria)) {
     $where_conditions[] = "c.id_categ = ?";
     $params[] = $filtro_categoria;
     $types .= 'i';
+}
+
+// Filtro por subcategoría
+if (!empty($filtro_subcategoria)) {
+    $where_conditions[] = "sc.id_subcg = ?";
+    $params[] = $filtro_subcategoria;
+    $types .= 'i';
+}
+
+// Filtro por talla
+if (!empty($filtro_talla)) {
+    $where_conditions[] = "p.talla LIKE ?";
+    $params[] = "%$filtro_talla%";
+    $types .= 's';
+}
+
+// Filtro por color
+if (!empty($filtro_color)) {
+    $where_conditions[] = "p.color LIKE ?";
+    $params[] = "%$filtro_color%";
+    $types .= 's';
 }
 
 // Filtro por proveedor
@@ -243,143 +301,36 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Sistema de gestión de productos - Inventixor">
     <title>Gestión de Productos - Inventixor</title>
+    
+    <!-- Preload de fuentes críticas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="public/css/style.css">
     
-    <style>
-        :root {
-            --sidebar-width: 280px;
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .sidebar-header {
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .sidebar-menu {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-        
-        .menu-item {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .menu-link {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .menu-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            padding-left: 2rem;
-        }
-        
-        .menu-link.active {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 2rem;
-        }
-        
-        .main-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            border-radius: 15px;
-        }
-        
-        .stats-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .filter-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-        
-        .table-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .btn-action {
-            margin: 0 2px;
-            padding: 0.25rem 0.5rem;
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .stock-alert {
-            background-color: #fff3cd;
-            border: 1px solid #ffecb5;
-            color: #664d03;
-        }
-        
-        .stock-critical {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-    </style>
+    <!-- Estilos del sistema -->
+    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive.css">
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3><i class="fas fa-boxes"></i> Inventixor</h3>
             <p class="mb-0">Sistema de Inventario</p>
@@ -448,6 +399,22 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
             <div class="container">
                 <h1><i class="fas fa-box me-3"></i>Gestión de Productos</h1>
                 <p class="mb-0">Administra el inventario de productos del sistema</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="fas fa-box me-2"></i>Gestión de Productos</h2>
+                        <p class="mb-0">Administra el catálogo completo de productos del inventario</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-light text-dark">
+                            Rol: <?= htmlspecialchars($_SESSION['rol']??'') ?>
+                        </span>
+                        <?php if (in_array($_SESSION['rol'], ['admin', 'coordinador', 'auxiliar'])): ?>
+                        <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalCrear">
+                            <i class="fas fa-plus me-2"></i>Nuevo Producto
+                        </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -495,16 +462,16 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
         </div>
 
         <!-- Filtros y Búsqueda -->
-        <div class="filter-card animate-fade-in" style="animation-delay: 0.6s;">
-            <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filtros y Búsqueda</h5>
+        <div class="filter-card animate-fade-in" style="animation-delay: 0.6s; background: linear-gradient(90deg, #e0e7ff 0%, #f0f4ff 100%); border-radius: 1rem; box-shadow: 0 2px 12px rgba(80,80,160,0.08);">
+            <h5 class="mb-3 text-primary"><i class="fas fa-filter me-2"></i>Filtros y Búsqueda</h5>
             <form method="GET" action="productos.php">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
+                <div class="row g-2">
+                    <div class="col-md-3 mb-2">
                         <input type="text" class="form-control" name="filtro" 
-                               placeholder="Buscar por nombre, modelo, talla, color o material..." 
+                               placeholder="Buscar por nombre, modelo, material..." 
                                value="<?php echo htmlspecialchars($filtro); ?>">
                     </div>
-                    <div class="col-md-2 mb-3">
+                    <div class="col-md-2 mb-2">
                         <select class="form-select" name="filtro_categoria">
                             <option value="">Todas las categorías</option>
                             <?php foreach($categorias as $cat): ?>
@@ -515,7 +482,24 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-2 mb-3">
+                    <div class="col-md-2 mb-2">
+                        <select class="form-select" name="filtro_subcategoria">
+                            <option value="">Todas las subcategorías</option>
+                            <?php foreach($subcategorias as $subcat): ?>
+                            <option value="<?php echo $subcat['id_subcg']; ?>" 
+                                    <?php echo ($filtro_subcategoria == $subcat['id_subcg']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($subcat['nombre']); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-1 mb-2">
+                        <input type="text" class="form-control" name="filtro_talla" placeholder="Talla">
+                    </div>
+                    <div class="col-md-1 mb-2">
+                        <input type="text" class="form-control" name="filtro_color" placeholder="Color">
+                    </div>
+                    <div class="col-md-2 mb-2">
                         <select class="form-select" name="filtro_proveedor">
                             <option value="">Todos los proveedores</option>
                             <?php foreach($proveedores as $prov): ?>
@@ -526,12 +510,10 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-2 mb-3">
+                    <div class="col-md-1 mb-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-search me-2"></i>Buscar
                         </button>
-                    </div>
-                    <div class="col-md-2 mb-3">
                         <a href="productos.php" class="btn btn-secondary w-100">
                             <i class="fas fa-times me-2"></i>Limpiar
                         </a>
@@ -791,10 +773,15 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
                             <?php 
                             // Obtener la categoría del producto actual
                             $categoria_actual_id = '';
-                            if ($editProducto['id_subcg']) {
-                                $cat_result = $db->conn->query("SELECT id_categ FROM Subcategoria WHERE id_subcg = " . $editProducto['id_subcg']);
-                                if ($cat_row = $cat_result->fetch_assoc()) {
-                                    $categoria_actual_id = $cat_row['id_categ'];
+                            if (!empty($editProducto['id_subcg'])) {
+                                if ($stmtCat = $db->conn->prepare("SELECT id_categ FROM Subcategoria WHERE id_subcg = ?")) {
+                                    $stmtCat->bind_param('i', $editProducto['id_subcg']);
+                                    $stmtCat->execute();
+                                    $resCat = $stmtCat->get_result();
+                                    if ($resCat && ($cat_row = $resCat->fetch_assoc())) {
+                                        $categoria_actual_id = $cat_row['id_categ'] ?? '';
+                                    }
+                                    $stmtCat->close();
                                 }
                             }
                             ?>
@@ -852,8 +839,21 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
     <?php endif; ?>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Sistema de Notificaciones -->
+    <script src="public/js/notifications.js"></script>
+    <script src="public/js/auto-notifications.js"></script>
+
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de productos
+        if (typeof setActiveMenuItem === 'function') {
+            setActiveMenuItem('productos.php');
+        }
+    </script>
+
     <!-- Script para filtrar subcategorías por categoría -->
     <script>
         // Array con todas las subcategorías
@@ -957,5 +957,8 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
         });
     </script>
     <?php endif; ?>
+    
+    <!-- Scripts responsivos -->
+    <script src="public/js/responsive.js"></script>
 </body>
 </html>
