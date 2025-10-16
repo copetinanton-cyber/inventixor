@@ -40,120 +40,130 @@ $puede_editar = $_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'coordinado
 // Eliminar producto
 if (isset($_GET['eliminar']) && $puede_editar) {
     $id_producto = intval($_GET['eliminar']);
-    
-    // Verificar si tiene salidas/alertas asociadas (prepared statements)
+
+    // Verificar dependencias (Salidas y Alertas)
     $salidaCount = 0;
-    if ($stmtSal = $db->conn->prepare("SELECT COUNT(*) AS c FROM Salidas WHERE id_prod = ?")) {
-        $stmtSal->bind_param('i', $id_producto);
-        $stmtSal->execute();
-        $resSal = $stmtSal->get_result();
-        if ($resSal && ($rowC = $resSal->fetch_assoc())) { $salidaCount = (int)$rowC['c']; }
-        $stmtSal->close();
+    if ($stmt = $db->conn->prepare("SELECT COUNT(*) AS c FROM Salidas WHERE id_prod = ?")) {
+        $stmt->bind_param('i', $id_producto);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && ($row = $res->fetch_assoc())) { $salidaCount = (int)$row['c']; }
+        $stmt->close();
     }
     $alertaCount = 0;
-    if ($stmtAl = $db->conn->prepare("SELECT COUNT(*) AS c FROM Alertas WHERE id_prod = ?")) {
-        $stmtAl->bind_param('i', $id_producto);
-        $stmtAl->execute();
-        $resAl = $stmtAl->get_result();
-        if ($resAl && ($rowA = $resAl->fetch_assoc())) { $alertaCount = (int)$rowA['c']; }
-        $stmtAl->close();
+    if ($stmt = $db->conn->prepare("SELECT COUNT(*) AS c FROM Alertas WHERE id_prod = ?")) {
+        $stmt->bind_param('i', $id_producto);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && ($row = $res->fetch_assoc())) { $alertaCount = (int)$row['c']; }
+        $stmt->close();
     }
-    
+
     if ($salidaCount > 0 || $alertaCount > 0) {
         $entidades = [];
         if ($salidaCount > 0) $entidades[] = "salidas ($salidaCount)";
         if ($alertaCount > 0) $entidades[] = "alertas ($alertaCount)";
-        $errorMsg = "No se puede eliminar el producto porque tiene " . implode(' y ', $entidades) . " asociados.";
+        $error = "No se puede eliminar el producto porque tiene " . implode(' y ', $entidades) . " asociados.";
     } else {
-        // Obtener snapshot del producto antes de eliminar
+        // Snapshot del producto antes de eliminar
         $producto_old = [];
-        if ($stmtProdOld = $db->conn->prepare("SELECT * FROM Productos WHERE id_prod = ?")) {
-            $stmtProdOld->bind_param('i', $id_producto);
-            $stmtProdOld->execute();
-            $resProdOld = $stmtProdOld->get_result();
-            $producto_old = $resProdOld ? ($resProdOld->fetch_assoc() ?: []) : [];
-            $stmtProdOld->close();
+        if ($stmt = $db->conn->prepare("SELECT * FROM Productos WHERE id_prod = ?")) {
+            $stmt->bind_param('i', $id_producto);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $producto_old = $res ? ($res->fetch_assoc() ?: []) : [];
+            $stmt->close();
         }
+
+        // Eliminar el producto
         $stmt = $db->conn->prepare("DELETE FROM Productos WHERE id_prod = ?");
         $stmt->bind_param('i', $id_producto);
         $stmt->execute();
         $stmt->close();
-        
-        // Generar notificación automática para todos los usuarios
+
+        // Notificar eliminación y redirigir
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionProducto($producto_old, $usuario_nombre);
-        
-        // Redireccionar con información específica del producto eliminado
-        $producto_info = urlencode($producto_old['nombre']);
+        $producto_info = urlencode($producto_old['nombre'] ?? '');
         header("Location: productos.php?msg=eliminado&id_prod=$id_producto&nombre_prod=$producto_info");
         exit;
     }
 }
 
 // Modificar producto
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_producto']) && $puede_editar) {
-    $id = intval($_POST['id_prod']);
-    $nombre = trim($_POST['nombre']);
-    $modelo = trim($_POST['modelo']);
-    $talla = trim($_POST['talla']);
-    $color = trim($_POST['color']);
-    $stock = intval($_POST['stock']);
-    $material = trim($_POST['material']);
-    $id_subcg = intval($_POST['id_subcg']);
-    $id_nit = intval($_POST['id_nit']);
-    
-    // Snapshot del producto antes de actualizar
-    $producto_old = [];
-    if ($stmtOld = $db->conn->prepare("SELECT * FROM Productos WHERE id_prod = ?")) {
-        $stmtOld->bind_param('i', $id);
-        $stmtOld->execute();
-        $resOld = $stmtOld->get_result();
-        $producto_old = $resOld ? ($resOld->fetch_assoc() ?: []) : [];
-        $stmtOld->close();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_producto'])) {
+    if (!$puede_editar) {
+        $error = 'No tienes permisos para modificar productos.';
+    } else {
+        $id = intval($_POST['id_prod']);
+        $nombre = trim($_POST['nombre']);
+        $modelo = trim($_POST['modelo']);
+        $talla = trim($_POST['talla']);
+        $color = trim($_POST['color']);
+        $stock = intval($_POST['stock']);
+        $material = trim($_POST['material']);
+        $id_subcg = intval($_POST['id_subcg']);
+        $id_nit = intval($_POST['id_nit']);
+
+        // Snapshot del producto antes de actualizar
+        $producto_old = [];
+        if ($stmt = $db->conn->prepare("SELECT * FROM Productos WHERE id_prod = ?")) {
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $producto_old = $res ? ($res->fetch_assoc() ?: []) : [];
+            $stmt->close();
+        }
+
+        // Actualizar (no permitimos cambiar fecha_ing ni num_doc desde el formulario)
+        $stmt = $db->conn->prepare("UPDATE Productos SET nombre = ?, modelo = ?, talla = ?, color = ?, stock = ?, material = ?, id_subcg = ?, id_nit = ? WHERE id_prod = ?");
+        $stmt->bind_param('ssssisiii', $nombre, $modelo, $talla, $color, $stock, $material, $id_subcg, $id_nit, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Notificaciones
+        $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
+        $sistemaNotificaciones->notificarModificacionProducto($producto_old, ['nombre' => $nombre, 'modelo' => $modelo, 'stock' => $stock], $usuario_nombre);
+        if ($stock <= 10) {
+            $sistemaNotificaciones->notificarStockBajo($id, $nombre, $stock);
+        }
+
+        header('Location: productos.php?msg=modificado');
+        exit;
     }
-    
-    $stmt = $db->conn->prepare("UPDATE Productos SET nombre = ?, modelo = ?, talla = ?, color = ?, stock = ?, material = ?, id_subcg = ?, id_nit = ? WHERE id_prod = ?");
-    $stmt->bind_param('ssssisiii', $nombre, $modelo, $talla, $color, $stock, $material, $id_subcg, $id_nit, $id);
-    $stmt->execute();
-    $stmt->close();
-    
-    // Generar notificación automática
-    $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
-    $sistemaNotificaciones->notificarModificacionProducto($producto_old, [
-        'nombre' => $nombre,
-        'modelo' => $modelo,
-        'stock' => $stock
-    ], $usuario_nombre);
-    
-    header('Location: productos.php?msg=modificado');
-    exit;
 }
 
-// Procesar formulario de creación
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto']) && $puede_editar) {
-    $nombre = trim($_POST['nombre']);
-    $modelo = trim($_POST['modelo']);
-    $talla = trim($_POST['talla']);
-    $color = trim($_POST['color']);
-    $stock = intval($_POST['stock']);
-    $material = trim($_POST['material']);
-    $id_subcg = intval($_POST['id_subcg']);
-    $id_nit = intval($_POST['id_nit']);
-    $num_doc = $_SESSION['user']['num_doc'];
-    $fecha_ing = date('Y-m-d');
-    
-    $stmt = $db->conn->prepare("INSERT INTO Productos (nombre, modelo, talla, color, stock, fecha_ing, material, id_subcg, id_nit, num_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param('ssssisisii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc);
-    $stmt->execute();
-    $nuevo_id = $db->conn->insert_id;
-    $stmt->close();
-    
-    // Generar notificación automática para todos los usuarios
-    $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
-    $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
-    
-    header('Location: productos.php?msg=creado');
-    exit;
+// Crear producto
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
+    if (in_array($_SESSION['rol'], ['admin', 'coordinador', 'auxiliar'])) {
+        $nombre = trim($_POST['nombre']);
+        $modelo = trim($_POST['modelo']);
+        $talla = trim($_POST['talla']);
+        $color = trim($_POST['color']);
+        $stock = intval($_POST['stock']);
+        $material = trim($_POST['material']);
+        $id_subcg = intval($_POST['id_subcg']);
+        $id_nit = intval($_POST['id_nit']);
+
+        // Derivar desde sesión/sistema
+        $num_doc = isset($_SESSION['user']['num_doc']) ? intval($_SESSION['user']['num_doc']) : 0;
+        $fecha_ing = date('Y-m-d');
+
+        $stmt = $db->conn->prepare("INSERT INTO Productos (nombre, modelo, talla, color, stock, fecha_ing, material, id_subcg, id_nit, num_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('ssssissiii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc);
+        $stmt->execute();
+        $nuevo_id = $db->conn->insert_id;
+        $stmt->close();
+
+        // Notificar creación
+        $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
+        $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
+
+        header('Location: productos.php?msg=creado');
+        exit;
+    } else {
+        $error = 'No tienes permisos para crear productos.';
+    }
 }
 
 // Filtrar productos
