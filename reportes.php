@@ -8,6 +8,9 @@ require_once 'app/helpers/Database.php';
 
 $db = new Database();
 
+// Verificar si es administrador
+$es_admin = (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'admin');
+
 // Asegurar que $_SESSION['rol'] esté definido
 if (!isset($_SESSION['rol'])) {
     if (isset($_SESSION['user']['num_doc'])) {
@@ -264,8 +267,6 @@ $reportes_por_usuario = $db->conn->query("SELECT
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="public/css/style.css">
     <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     
@@ -365,7 +366,7 @@ $reportes_por_usuario = $db->conn->query("SELECT
             margin-bottom: 0.5rem;
         }
         
-        .filter-card, .form-card, .chart-card {
+        .filter-card, .form-card {
             background: white;
             border-radius: 10px;
             padding: 1.5rem;
@@ -399,10 +400,7 @@ $reportes_por_usuario = $db->conn->query("SELECT
             color: white;
         }
         
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
+
     </style>
 </head>
 <body>
@@ -462,11 +460,13 @@ $reportes_por_usuario = $db->conn->query("SELECT
                     <i class="fas fa-exclamation-triangle me-2"></i> Alertas
                 </a>
             </li>
+            <?php if ($es_admin): ?>
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios
                 </a>
             </li>
+            <?php endif; ?>
             <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
@@ -535,26 +535,6 @@ $reportes_por_usuario = $db->conn->query("SELECT
                     </div>
                     <div class="stats-number text-warning"><?= $stats['reportes_mes'] ?></div>
                     <div class="text-muted">Este Mes</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gráficos -->
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <div class="chart-card animate-fade-in">
-                    <h5><i class="fas fa-chart-line me-2"></i>Reportes por Mes</h5>
-                    <div class="chart-container">
-                        <canvas id="reportesPorMesChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="chart-card animate-fade-in">
-                    <h5><i class="fas fa-chart-pie me-2"></i>Reportes por Usuario</h5>
-                    <div class="chart-container">
-                        <canvas id="reportesPorUsuarioChart"></canvas>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1024,73 +1004,7 @@ $reportes_por_usuario = $db->conn->query("SELECT
             ?>
         ];
         
-        // Crear gráficos
-        document.addEventListener('DOMContentLoaded', function() {
-            // Gráfico de reportes por mes
-            const ctx1 = document.getElementById('reportesPorMesChart').getContext('2d');
-            new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: [<?= implode(',', $meses) ?>],
-                    datasets: [{
-                        label: 'Reportes por Mes',
-                        data: reportesPorMesData,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            // Gráfico de reportes por usuario
-            const ctx2 = document.getElementById('reportesPorUsuarioChart').getContext('2d');
-            new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: [<?= implode(',', $usuarios_nombres) ?>],
-                    datasets: [{
-                        data: reportesPorUsuarioData,
-                        backgroundColor: [
-                            '#667eea',
-                            '#764ba2',
-                            '#f093fb',
-                            '#4facfe',
-                            '#43e97b'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        });
+
         
         // Aplicar filtros
         function aplicarFiltros() {

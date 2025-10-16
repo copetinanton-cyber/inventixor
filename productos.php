@@ -28,6 +28,9 @@ if (!isset($_SESSION['rol'])) {
 $message = '';
 $error = '';
 
+// Verificar si es administrador
+$es_admin = (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'admin');
+
 // Eliminar producto
 if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'coordinador')) {
     $id_prod = intval($_GET['eliminar']);
@@ -435,11 +438,13 @@ $stats = $db->conn->query("SELECT
                     <i class="fas fa-exclamation-triangle me-2"></i> Alertas
                 </a>
             </li>
+            <?php if ($es_admin): ?>
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios
                 </a>
             </li>
+            <?php endif; ?>
             <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión

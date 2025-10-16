@@ -7,6 +7,9 @@ require_once 'app/helpers/SistemaNotificaciones.php';
 $db = new Database();
 $sistemaNotificaciones = new SistemaNotificaciones($db);
 $showReportBtn = true;
+
+// Verificar si es administrador
+$es_admin = (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'admin');
 if ($showReportBtn) {
     echo '<div class="text-end mb-3"><a href="reportes.php?tabla=categorias" class="btn btn-primary">Reportes de categorías</a></div>';
 }
@@ -285,11 +288,13 @@ if (isset($_GET['msg'])) {
                     <i class="fas fa-exclamation-triangle me-2"></i> Alertas
                 </a>
             </li>
+            <?php if ($es_admin): ?>
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios
                 </a>
             </li>
+            <?php endif; ?>
             <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión

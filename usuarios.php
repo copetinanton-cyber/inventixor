@@ -10,10 +10,9 @@ require_once 'config/db.php';
 // Verificar permisos
 $usuario = $_SESSION['user'];
 $es_admin = $usuario['rol'] === 'admin';
-$es_coordinador = $usuario['rol'] === 'coordinador' || $es_admin;
 
-// Solo coordinadores y admins pueden acceder
-if (!$es_coordinador) {
+// Solo administradores pueden gestionar usuarios
+if (!$es_admin) {
     header('Location: dashboard.php');
     exit();
 }
@@ -27,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         switch ($action) {
             case 'crear':
-                if (!$es_coordinador) {
-                    throw new Exception('No tiene permisos para crear usuarios');
+                if (!$es_admin) {
+                    throw new Exception('Solo los administradores pueden crear usuarios');
                 }
                 
                 $num_doc = $_POST['num_doc'];
@@ -63,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
                 
             case 'editar':
-                if (!$es_coordinador) {
-                    throw new Exception('No tiene permisos para editar usuarios');
+                if (!$es_admin) {
+                    throw new Exception('Solo los administradores pueden editar usuarios');
                 }
                 
                 $num_doc = $_POST['num_doc'];
@@ -556,7 +555,7 @@ $stats = $stats_result->fetch_assoc();
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5><i class="fas fa-filter me-2"></i>Filtros y Acciones</h5>
                             <div class="btn-toolbar" role="toolbar">
-                                <?php if ($es_coordinador): ?>
+                                <?php if ($es_admin): ?>
                                 <button type="button" class="btn btn-create me-2" onclick="crearUsuario()">
                                     <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
                                 </button>
@@ -674,8 +673,8 @@ $stats = $stats_result->fetch_assoc();
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                                 
-                                                <?php if ($es_coordinador): ?>
-                                                <!-- Botón Editar - Solo coordinadores y admins -->
+                                                <?php if ($es_admin): ?>
+                                                <!-- Botón Editar - Solo administradores -->
                                                 <button type="button" class="btn btn-outline-warning btn-action" 
                                                         onclick="editarUsuario(<?php echo $usuario_row['num_doc']; ?>, '<?php echo addslashes($usuario_row['nombres']); ?>', '<?php echo addslashes($usuario_row['apellidos']); ?>', '<?php echo addslashes($usuario_row['telefono']); ?>', '<?php echo addslashes($usuario_row['correo']); ?>', '<?php echo addslashes($usuario_row['cargo']); ?>', '<?php echo $usuario_row['rol']; ?>')"
                                                         title="Editar Usuario">
