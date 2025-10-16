@@ -113,12 +113,39 @@ body {
     color: var(--primary-color);
 }
 
-.welcome-header, .page-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
+.welcome-header, .page-header, .main-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    color: #764ba2 !important;
     padding: 2rem;
     border-radius: 15px;
     margin-bottom: 2rem;
+    border: 2px solid #764ba2;
+}
+
+/* Estilos para subtítulos en headers - COLOR PÚRPURA */
+.welcome-header p, .page-header p, .main-header p {
+    color: #764ba2 !important;
+    font-weight: 400;
+}
+
+.welcome-header h1, .welcome-header h2, .welcome-header h3,
+.page-header h1, .page-header h2, .page-header h3,
+.main-header h1, .main-header h2, .main-header h3 {
+    color: #764ba2 !important;
+}
+
+/* Forzar estilos específicos para todos los párrafos en headers - PÚRPURA */
+div[class*="header"] p,
+div[class*="Header"] p {
+    color: #764ba2 !important;
+}
+
+/* Selector súper específico para los subtítulos - PÚRPURA */
+.main-header .container-fluid .d-flex div p.mb-0,
+.page-header .container-fluid .d-flex div p.mb-0,
+.welcome-header .d-flex div p.mb-0 {
+    color: #764ba2 !important;
+    opacity: 1 !important;
 }
 
 .content-card {
@@ -132,6 +159,29 @@ body {
 /* Override para asegurar que el body ocupe todo el ancho */
 body {
     overflow-x: hidden;
+}
+
+/* Estilos globales para subtítulos y descripciones - PÚRPURA */
+.main-content p.mb-0, 
+.container-fluid p.mb-0,
+.page-header p,
+.main-header p,
+.main-header .container-fluid p {
+    color: #764ba2 !important;
+}
+
+/* Forzar color PÚRPURA en subtítulos de headers */
+.main-header p.mb-0,
+.page-header p.mb-0,
+.welcome-header p.mb-0 {
+    color: #764ba2 !important;
+    font-weight: 400 !important;
+}
+
+/* Para subtítulos fuera de headers con gradiente */
+.text-muted {
+    color: var(--primary-color) !important;
+    opacity: 0.8;
 }
 
 /* Media Queries para Responsividad */
@@ -186,15 +236,17 @@ body {
         text-align: center !important;
     }
     
-    /* Mejorar el título y subtítulo en móvil */
+    /* Mejorar el título y subtítulo en móvil - PÚRPURA */
     .welcome-header h2, .page-header h2, .main-header h2 {
         font-size: 1.5rem !important;
         margin-bottom: 0.5rem !important;
+        color: #764ba2 !important;
     }
     
     .welcome-header p, .page-header p, .main-header p {
         font-size: 0.9rem !important;
         margin-bottom: 1rem !important;
+        color: #764ba2 !important;
     }
     
     .stats-card, .content-card, .filter-card, .form-card, .table-card {
