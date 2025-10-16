@@ -1,0 +1,373 @@
+/* Responsive Sidebar CSS - Inventixor */
+:root {
+    --sidebar-width: 280px;
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Botón hamburguesa para móviles */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    z-index: 1000;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.sidebar-menu {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.menu-item {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.menu-link {
+    display: block;
+    padding: 1rem 1.5rem;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.menu-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding-left: 2rem;
+}
+
+.menu-link.active {
+    background: rgba(255,255,255,0.2);
+}
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 2rem;
+    transition: margin-left 0.3s ease;
+    min-height: 100vh;
+}
+
+/* Overlay para móviles */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-left: 5px solid var(--primary-color);
+    transition: all 0.3s;
+    margin-bottom: 1rem;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.welcome-header, .page-header, .main-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    color: #764ba2 !important;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    border: 2px solid #764ba2;
+}
+
+/* Estilos para subtítulos en headers - COLOR PÚRPURA */
+.welcome-header p, .page-header p, .main-header p {
+    color: #764ba2 !important;
+    font-weight: 400;
+}
+
+.welcome-header h1, .welcome-header h2, .welcome-header h3,
+.page-header h1, .page-header h2, .page-header h3,
+.main-header h1, .main-header h2, .main-header h3 {
+    color: #764ba2 !important;
+}
+
+/* Forzar estilos específicos para todos los párrafos en headers - PÚRPURA */
+div[class*="header"] p,
+div[class*="Header"] p {
+    color: #764ba2 !important;
+}
+
+/* Selector súper específico para los subtítulos - PÚRPURA */
+.main-header .container-fluid .d-flex div p.mb-0,
+.page-header .container-fluid .d-flex div p.mb-0,
+.welcome-header .d-flex div p.mb-0 {
+    color: #764ba2 !important;
+    opacity: 1 !important;
+}
+
+.content-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+/* Override para asegurar que el body ocupe todo el ancho */
+body {
+    overflow-x: hidden;
+}
+
+/* Estilos globales para subtítulos y descripciones - PÚRPURA */
+.main-content p.mb-0, 
+.container-fluid p.mb-0,
+.page-header p,
+.main-header p,
+.main-header .container-fluid p {
+    color: #764ba2 !important;
+}
+
+/* Forzar color PÚRPURA en subtítulos de headers */
+.main-header p.mb-0,
+.page-header p.mb-0,
+.welcome-header p.mb-0 {
+    color: #764ba2 !important;
+    font-weight: 400 !important;
+}
+
+/* Para subtítulos fuera de headers con gradiente */
+.text-muted {
+    color: var(--primary-color) !important;
+    opacity: 0.8;
+}
+
+/* Media Queries para Responsividad */
+@media (max-width: 768px) {
+    /* Reset completo para móviles */
+    * {
+        box-sizing: border-box;
+    }
+    .mobile-menu-btn {
+        display: block;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        padding: 1rem !important;
+        padding-top: 70px !important; /* Espacio para el botón hamburguesa */
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Forzar que el contenedor ocupe todo el ancho */
+    .container-fluid, .container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    
+    .welcome-header, .page-header, .main-header {
+        padding: 1.5rem !important;
+        text-align: center;
+        margin-bottom: 1.5rem !important;
+        border-radius: 10px !important;
+    }
+    
+    .welcome-header .d-flex, .page-header .d-flex, .main-header .d-flex {
+        flex-direction: column !important;
+        gap: 1rem;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    
+    /* Mejorar el título y subtítulo en móvil - PÚRPURA */
+    .welcome-header h2, .page-header h2, .main-header h2 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+        color: #764ba2 !important;
+    }
+    
+    .welcome-header p, .page-header p, .main-header p {
+        font-size: 0.9rem !important;
+        margin-bottom: 1rem !important;
+        color: #764ba2 !important;
+    }
+    
+    .stats-card, .content-card, .filter-card, .form-card, .table-card {
+        margin-bottom: 1rem !important;
+        padding: 1rem !important;
+        border-radius: 10px !important;
+        width: 100% !important;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Mejorar filtros en móvil */
+    .filter-card .row {
+        margin: 0 !important;
+    }
+    
+    .filter-card .col-md-3, .filter-card .col-md-4, .filter-card .col-md-6 {
+        padding: 0.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Botones en móvil */
+    .btn-group {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 0.25rem !important;
+        border-radius: 5px !important;
+    }
+    
+    /* Tablas responsive */
+    .table-responsive {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .table th, .table td {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Botones en móviles */
+    .btn-group-vertical {
+        width: 100%;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.75rem !important;
+        padding-top: 70px !important;
+    }
+    
+    .welcome-header, .page-header, .main-header {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .stats-card, .content-card, .filter-card, .table-card {
+        padding: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .col-md-4, .col-md-3, .col-md-6, .col-lg-2, .col-lg-3 {
+        margin-bottom: 0.5rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    /* Hacer que los inputs ocupen todo el ancho disponible */
+    .form-control, .form-select, .btn {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .table th, .table td {
+        padding: 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Mejorar formularios en móviles */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .input-group .form-control {
+        min-width: 0;
+    }
+    
+    .btn-toolbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .btn-toolbar .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}

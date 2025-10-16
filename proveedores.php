@@ -47,13 +47,6 @@ if (isset($_GET['eliminar'])) {
         $stmt->bind_param('i', $id_nit);
         $stmt->execute();
         $stmt->close();
-        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $rol = $_SESSION['rol'];
-            $detalles = json_encode($old);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Proveedor', $id_nit, 'eliminar', '$usuario', '$rol', '$detalles')");
-        }
-        
         // Generar notificación automática para todos los usuarios
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionProveedor($old, $usuario_nombre);
@@ -171,6 +164,7 @@ if (!empty($params)) {
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     
     <style>
         :root {
@@ -302,8 +296,16 @@ if (!empty($params)) {
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3><i class="fas fa-boxes"></i> Inventixor</h3>
             <p class="mb-0">Sistema de Inventario</p>
@@ -790,6 +792,13 @@ if (!empty($params)) {
     <!-- Sistema de Notificaciones -->
     <script src="public/js/notifications.js"></script>
     <script src="public/js/auto-notifications.js"></script>
+    
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de proveedores
+        setActiveMenuItem('proveedores.php');
+    </script>
     
     <script>
         let providerToDelete = null;

@@ -46,13 +46,6 @@ if (isset($_GET['eliminar'])) {
         $stmt->bind_param('i', $id_subcategoria);
         $stmt->execute();
         $stmt->close();
-        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $rol = $_SESSION['rol'];
-            $detalles = json_encode($subcat);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Subcategoria', $id_subcategoria, 'eliminar', '$usuario', '$rol', '$detalles')");
-        }
-        
         // Generar notificación automática para todos los usuarios
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionSubcategoria($subcat, $usuario_nombre);
@@ -106,12 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_subcategori
     $stmt->bind_param('ssii', $nombre, $descripcion, $id_categ, $id);
     $stmt->execute();
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(['antes'=>$old,'despues'=>compact('nombre','descripcion','id_categ')]);
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Subcategoria', $id, 'editar', '$usuario', '$rol', '$detalles')");
-    }
     header('Location: subcategorias.php?msg=modificado');
     exit;
 }
@@ -126,12 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_subcategoria'])
     $stmt->execute();
     $nuevo_id = $db->conn->insert_id;
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(compact('nombre','descripcion','id_categ'));
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Subcategoria', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
-    }
     
     // Generar notificación automática para todos los usuarios
     $categoria_nombre = $db->conn->query("SELECT nombre FROM Categoria WHERE id_categ = $id_categ")->fetch_assoc()['nombre'];
@@ -228,26 +209,9 @@ if (isset($_GET['msg'])) {
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     
     <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --sidebar-width: 280px;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             z-index: 1000;
             overflow-y: auto;
@@ -344,8 +308,16 @@ if (isset($_GET['msg'])) {
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3><i class="fas fa-boxes"></i> Inventixor</h3>
             <p class="mb-0">Sistema de Inventario</p>
@@ -831,5 +803,12 @@ if (isset($_GET['msg'])) {
     <!-- Sistema de Notificaciones -->
     <script src="public/js/notifications.js"></script>
     <script src="public/js/auto-notifications.js"></script>
+    
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de subcategorías
+        setActiveMenuItem('subcategorias.php');
+    </script>
 </body>
 </html>

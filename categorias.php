@@ -37,13 +37,6 @@ if (isset($_GET['eliminar'])) {
         $stmt->bind_param('i', $id_categoria);
         $stmt->execute();
         $stmt->close();
-        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $rol = $_SESSION['rol'];
-            $detalles = json_encode($cat);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $id_categoria, 'eliminar', '$usuario', '$rol', '$detalles')");
-        }
-        
         // Generar notificación automática para todos los usuarios
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionCategoria($cat, $usuario_nombre);
@@ -65,12 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_categoria']
     $stmt->bind_param('ssi', $nombre, $descripcion, $id);
     $stmt->execute();
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(['antes'=>$old,'despues'=>compact('nombre','descripcion')]);
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $id, 'editar', '$usuario', '$rol', '$detalles')");
-    }
     header('Location: categorias.php?msg=modificado');
     exit;
 }
@@ -84,12 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_categoria'])) {
     $stmt->execute();
     $nuevo_id = $db->conn->insert_id;
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(compact('nombre','descripcion'));
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
-    }
     
     // Generar notificación automática para todos los usuarios
     $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
@@ -164,60 +145,9 @@ if (isset($_GET['msg'])) {
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     
     <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --sidebar-width: 280px;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .sidebar-header {
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .sidebar-menu {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-        
-        .menu-item {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .menu-link {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .menu-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            padding-left: 2rem;
-        }
         
         .menu-link.active {
             background: rgba(255,255,255,0.2);
@@ -280,8 +210,16 @@ if (isset($_GET['msg'])) {
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3><i class="fas fa-boxes"></i> Inventixor</h3>
             <p class="mb-0">Sistema de Inventario</p>
@@ -623,6 +561,15 @@ if (isset($_GET['msg'])) {
     <!-- Sistema de Notificaciones -->
     <script src="public/js/notifications.js"></script>
     <script src="public/js/auto-notifications.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de categorías
+        setActiveMenuItem('categorias.php');
+    </script>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </html>

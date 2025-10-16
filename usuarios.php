@@ -186,6 +186,7 @@ $stats = $stats_result->fetch_assoc();
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     
     <style>
         :root {
@@ -438,11 +439,19 @@ $stats = $stats_result->fetch_assoc();
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             <div class="col-md-3">
-                <div class="sidebar">
+                <div class="sidebar" id="sidebar">
                     <h4><i class="fas fa-cogs me-2"></i>Panel de Control</h4>
                     <ul class="nav flex-column">
                         <li class="nav-item">
@@ -1010,6 +1019,13 @@ $stats = $stats_result->fetch_assoc();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de usuarios
+        setActiveMenuItem('usuarios.php');
+    </script>
     
     <script>
         // Función para ver detalles del usuario

@@ -32,7 +32,7 @@ $error = '';
 if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'coordinador')) {
     $id_prod = intval($_GET['eliminar']);
     
-    // Verificar relaciones críticas (no incluimos HistorialMovimientos porque es auditoría y se puede eliminar)
+    // Verificar relaciones críticas
     $salidas = $db->conn->query("SELECT COUNT(*) FROM Salidas WHERE id_prod = $id_prod")->fetch_row()[0];
     $alertas = $db->conn->query("SELECT COUNT(*) FROM Alertas WHERE id_prod = $id_prod")->fetch_row()[0];
     $reportes = $db->conn->query("SELECT COUNT(*) FROM Reportes WHERE id_prod = $id_prod")->fetch_row()[0];
@@ -43,8 +43,7 @@ if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'
         if ($salidas > 0) $entidades[] = "salidas ($salidas)";
         if ($alertas > 0) $entidades[] = "alertas ($alertas)";
         if ($reportes > 0) $entidades[] = "reportes ($reportes)";
-        $warning = $movimientos > 0 ? " También se eliminarán $movimientos movimientos del historial." : "";
-        $error = "No se puede eliminar el producto porque tiene " . implode(', ', $entidades) . " asociadas." . $warning;
+        $error = "No se puede eliminar el producto porque tiene " . implode(', ', $entidades) . " asociadas.";
     } else {
         // Obtener datos antes de eliminar
         $prod = $db->conn->query("SELECT * FROM Productos WHERE id_prod = $id_prod")->fetch_assoc();
@@ -61,6 +60,7 @@ if (isset($_GET['eliminar']) && ($_SESSION['rol'] === 'admin' || $_SESSION['rol'
     // $db->conn->query("DELETE FROM HistorialMovimientos WHERE id_prod = $id_prod");
         
         // Ahora eliminar el producto principal
+        // Eliminar el producto principal
         $stmt = $db->conn->prepare("DELETE FROM Productos WHERE id_prod = ?");
         $stmt->bind_param('i', $id_prod);
         $stmt->execute();
@@ -149,14 +149,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
             $detalles = json_encode(compact('nombre','modelo','talla','color','stock','fecha_ing','material','id_subcg','id_nit','num_doc'));
             // $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Producto', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
             // $db->conn->query("INSERT INTO HistorialMovimientos (id_prod, tipo_movimiento, usuario, observaciones) VALUES ($nuevo_id, 'alta', '$usuario', 'Creación de producto')");
+        // Insertar el producto directamente (validación de duplicados simplificada)
+        try {
+            // Debug: Verificar datos antes de insertar
+            error_log("DEBUG CREAR: Insertando producto - nombre: $nombre, modelo: $modelo");
+            
+            $stmt = $db->conn->prepare("INSERT INTO Productos (nombre, modelo, talla, color, stock, fecha_ing, material, id_subcg, id_nit, num_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssssissiii', $nombre, $modelo, $talla, $color, $stock, $fecha_ing, $material, $id_subcg, $id_nit, $num_doc);
+            
+            if ($stmt->execute()) {
+                $nuevo_id = $db->conn->insert_id;
+                $stmt->close();
+                
+                error_log("DEBUG CREAR: Producto creado exitosamente con ID: $nuevo_id");
+                
+                // Generar notificación automática para todos los usuarios
+                $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
+                $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
+                
+                error_log("DEBUG CREAR: Redirigiendo a productos.php?msg=creado");
+                header('Location: productos.php?msg=creado');
+                exit;
+            } else {
+                $error = 'Error en la ejecución: ' . $stmt->error;
+                error_log("DEBUG CREAR: Error SQL - " . $stmt->error);
+            }
+        } catch (Exception $e) {
+            $error = 'Error al crear el producto: ' . $e->getMessage();
+            error_log("DEBUG CREAR: Excepción - " . $e->getMessage());
         }
-        
-        // Generar notificación automática para todos los usuarios
-        $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
-        $sistemaNotificaciones->notificarNuevoProducto($nuevo_id, $nombre, $usuario_nombre);
-        
-        header('Location: productos.php?msg=creado');
-        exit;
     } else {
         $error = 'No tienes permisos para crear productos.';
     }
@@ -165,26 +186,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_producto'])) {
         // Mensajes
 $show_notification = '';
 $producto_eliminado = [];
+
+// Debug: Verificar parámetros GET
+if (isset($_GET['msg'])) {
+    error_log("DEBUG MSG: Parámetro msg recibido = " . $_GET['msg']);
+}
+
 if (isset($_GET['msg'])) {
     switch ($_GET['msg']) {
         case 'creado':
             $message = 'Producto creado correctamente.';
             $show_notification = 'created';
+            error_log("DEBUG MSG: Configurando notificación de CREADO");
             break;
         case 'modificado':
             $message = 'Producto modificado correctamente.';
             $show_notification = 'updated';
             break;
         case 'eliminado':
-            // Obtener información específica del producto eliminado
-            $id_eliminado = isset($_GET['id_prod']) ? intval($_GET['id_prod']) : 0;
-            $nombre_eliminado = isset($_GET['nombre_prod']) ? urldecode($_GET['nombre_prod']) : 'Desconocido';
-            $producto_eliminado = [
-                'id' => $id_eliminado,
-                'nombre' => $nombre_eliminado
-            ];
-            $message = "Producto eliminado correctamente: $nombre_eliminado (ID: $id_eliminado)";
-            $show_notification = 'deleted';
+            // Solo mostrar notificación de eliminado si la URL contiene id_prod y nombre_prod
+            if (isset($_GET['id_prod']) && isset($_GET['nombre_prod']) && !isset($_GET['msg']) || $_GET['msg'] === 'eliminado') {
+                $id_eliminado = intval($_GET['id_prod']);
+                $nombre_eliminado = urldecode($_GET['nombre_prod']);
+                $producto_eliminado = [
+                    'id' => $id_eliminado,
+                    'nombre' => $nombre_eliminado
+                ];
+                $message = "Producto eliminado correctamente: $nombre_eliminado (ID: $id_eliminado)";
+                $show_notification = 'deleted';
+                error_log("DEBUG MSG: Configurando notificación de ELIMINADO");
+            }
             break;
     }
 }// Filtros
@@ -292,70 +323,9 @@ $stats = $db->conn->query("SELECT
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     
     <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --sidebar-width: 280px;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .sidebar-header {
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .sidebar-menu {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-        
-        .menu-item {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .menu-link {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .menu-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            padding-left: 2rem;
-        }
-        
-        .menu-link.active {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 2rem;
-        }
-        
         .main-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -440,8 +410,16 @@ $stats = $db->conn->query("SELECT
     </style>
 </head>
 <body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3><i class="fas fa-boxes"></i> Inventixor</h3>
             <p class="mb-0">Sistema de Inventario</p>
@@ -504,7 +482,7 @@ $stats = $db->conn->query("SELECT
     <!-- Main Content -->
     <div class="main-content">
         <!-- Header -->
-        <div class="main-header">
+        <div class="page-header">
             <div class="container-fluid">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -679,7 +657,9 @@ $stats = $db->conn->query("SELECT
                     $total = 0;
                     $allRows = $db->conn->query("SELECT COUNT(*) as total FROM Productos")->fetch_assoc();
                     $total = $allRows['total'];
-                    while($row = $result->fetch_assoc()): 
+                    
+                    if ($result && $result->num_rows > 0) {
+                        while($row = $result->fetch_assoc()): 
                         $filtrados++;
                         $stockClass = '';
                         $stockIcon = '';
@@ -753,7 +733,10 @@ $stats = $db->conn->query("SELECT
                                 </div>
                             </td>
                         </tr>
-                    <?php endwhile; ?>
+                    <?php endwhile; 
+                    } else { 
+                        echo '<tr><td colspan="9" class="text-center">No se encontraron productos</td></tr>';
+                    } ?>
                     <script>
                         document.getElementById('productosFiltrados').textContent = "<?= $filtrados ?>";
                         document.getElementById('productosTotal').textContent = "<?= $total ?>";
@@ -1135,6 +1118,13 @@ $stats = $db->conn->query("SELECT
     <script src="public/js/notifications.js"></script>
     <script src="public/js/auto-notifications.js"></script>
     
+    <!-- Sistema Responsive -->
+    <script src="public/js/responsive-sidebar.js"></script>
+    <script>
+        // Marcar como activo el menú de productos
+        setActiveMenuItem('productos.php');
+    </script>
+    
     <script>
         let productToDelete = null;
         
@@ -1330,15 +1320,45 @@ $stats = $db->conn->query("SELECT
                 }, index * 200);
             });
 
+            // Protección contra doble envío del formulario
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                let isSubmitting = false;
+                form.addEventListener('submit', function(e) {
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    isSubmitting = true;
+                    const submitButtons = form.querySelectorAll('button[type="submit"]');
+                    submitButtons.forEach(button => {
+                        button.disabled = true;
+                        const originalText = button.innerHTML;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                        
+                        // Restaurar el botón después de 10 segundos en caso de error
+                        setTimeout(() => {
+                            button.disabled = false;
+                            button.innerHTML = originalText;
+                            isSubmitting = false;
+                        }, 10000);
+                    });
+                });
+            });
+
             // Sistema de notificaciones automáticas
             <?php if ($show_notification): ?>
+            console.log('DEBUG: Mostrando notificación tipo: <?= $show_notification ?>');
             setTimeout(function() {
                 const notificationSystem = new NotificationSystem();
                 <?php if ($show_notification === 'created'): ?>
+                console.log('DEBUG: Ejecutando notificación de CREACIÓN');
                 notificationSystem.showProductChange('create', 'Producto creado exitosamente', 'success');
                 <?php elseif ($show_notification === 'updated'): ?>
                 notificationSystem.showProductChange('update', 'Producto actualizado exitosamente', 'success');
                 <?php elseif ($show_notification === 'deleted'): ?>
+                console.log('DEBUG: Ejecutando notificación de ELIMINACIÓN');
                 notificationSystem.showProductChange(
                     'delete', 
                     'Producto "<?= htmlspecialchars($producto_eliminado['nombre']) ?>" (ID: <?= $producto_eliminado['id'] ?>) eliminado del sistema', 
