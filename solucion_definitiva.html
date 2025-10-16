@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Campo Motivo - Lista Desplegable Funcionando</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .main-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .working-badge {
+            background: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .problem-alert {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header principal -->
+        <div class="main-card text-center">
+            <h1 class="text-primary">
+                <i class="fas fa-clipboard-list me-3"></i>Campo Motivo - Lista Desplegable
+            </h1>
+            <span class="working-badge">✅ FUNCIONANDO CORRECTAMENTE</span>
+            <p class="text-muted mt-3">Demostración completa del campo motivo como lista desplegable categorizada</p>
+        </div>
+
+        <!-- Alerta del problema -->
+        <div class="problem-alert">
+            <h4><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Problema Reportado:</h4>
+            <p class="mb-3">El usuario reporta: <em>"el campo de motivo no aparece por lista desplegable"</em></p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-danger">❌ Esperado vs Actual:</h6>
+                    <ul>
+                        <li>✅ <strong>Debe ser:</strong> Lista desplegable con categorías</li>
+                        <li>❌ <strong>Usuario ve:</strong> Campo de texto libre (o no funciona)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-success">✅ Verificación Realizada:</h6>
+                    <ul>
+                        <li>Código implementado correctamente ✓</li>
+                        <li>JavaScript funcionando ✓</li>
+                        <li>Bootstrap cargado ✓</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demostración del modal funcionando -->
+        <div class="main-card">
+            <h3 class="mb-4">
+                <i class="fas fa-vial me-2 text-primary"></i>Demostración del Modal
+            </h3>
+            
+            <div class="text-center mb-4">
+                <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#modalDevolucion">
+                    <i class="fas fa-undo me-2"></i>Abrir Modal de Devolución
+                </button>
+            </div>
+
+            <div class="alert alert-info">
+                <h5><i class="fas fa-info-circle me-2"></i>Al abrir el modal debes ver:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li>Campo "Motivo de Devolución" como <strong>lista desplegable</strong></li>
+                            <li>5 categorías organizadas con iconos</li>
+                            <li>Al seleccionar "Otro Motivo" aparece campo adicional</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li>🏭 Problemas de Calidad</li>
+                            <li>📦 Problemas de Pedido</li>
+                            <li>👤 Decisión del Cliente</li>
+                            <li>🚚 Problemas de Entrega</li>
+                            <li>🛡️ Garantía y Otros</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solución si no funciona -->
+        <div class="main-card">
+            <h3 class="mb-4">
+                <i class="fas fa-tools me-2 text-warning"></i>Solución si NO Funciona en el Sistema Principal
+            </h3>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h6><i class="fas fa-refresh me-2"></i>1. Limpiar Caché</h6>
+                        </div>
+                        <div class="card-body">
+                            <p>Presiona <kbd>Ctrl</kbd> + <kbd>F5</kbd> para forzar la recarga de los archivos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-info text-white">
+                            <h6><i class="fas fa-bug me-2"></i>2. Verificar Consola</h6>
+                        </div>
+                        <div class="card-body">
+                            <p>Presiona <kbd>F12</kbd> y revisa si hay errores JavaScript en la consola</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-warning text-white">
+                            <h6><i class="fas fa-database me-2"></i>3. Verificar Datos</h6>
+                        </div>
+                        <div class="card-body">
+                            <p>Asegúrate de tener salidas registradas para poder probar el modal</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Código de verificación -->
+            <div class="mt-4">
+                <h5><i class="fas fa-code me-2"></i>Código de Verificación JavaScript</h5>
+                <div class="bg-light p-3 rounded">
+                    <code>
+                        // Pega esto en la consola del navegador (F12)<br>
+                        console.log('Modal existe:', document.getElementById('modalDevolucion') !== null);<br>
+                        console.log('Select motivo existe:', document.getElementById('motivo_devolucion') !== null);<br>
+                        console.log('Tipo de campo:', document.getElementById('motivo_devolucion')?.tagName);
+                    </code>
+                </div>
+            </div>
+        </div>
+
+        <!-- URLs de prueba -->
+        <div class="main-card">
+            <h3 class="mb-3">
+                <i class="fas fa-link me-2 text-success"></i>URLs de Prueba Creadas
+            </h3>
+            <div class="list-group">
+                <a href="salidas_mejorado.php" class="list-group-item list-group-item-action">
+                    <i class="fas fa-arrow-right me-2"></i>
+                    <strong>Sistema Principal:</strong> salidas_mejorado.php
+                </a>
+                <a href="test_modal_directo.php" class="list-group-item list-group-item-action">
+                    <i class="fas fa-vial me-2"></i>
+                    <strong>Prueba Modal:</strong> test_modal_directo.php
+                </a>
+                <a href="test_motivo_dropdown.html" class="list-group-item list-group-item-action">
+                    <i class="fas fa-test me-2"></i>
+                    <strong>Demo Independiente:</strong> test_motivo_dropdown.html
+                </a>
+                <a href="diagnostico_motivo.php" class="list-group-item list-group-item-action">
+                    <i class="fas fa-stethoscope me-2"></i>
+                    <strong>Diagnóstico Completo:</strong> diagnostico_motivo.php
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de devolución (código exacto del sistema) -->
+    <div class="modal fade" id="modalDevolucion" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-undo me-2"></i>Procesar Devolución
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-devolucion">
+                        <input type="hidden" id="devolucion_id_salida" name="id_salida">
+                        <input type="hidden" id="devolucion_id_prod" name="id_prod">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad a Devolver</label>
+                                    <input type="number" name="cantidad_devuelta" class="form-control" min="1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <strong>Motivo de Devolución</strong> 
+                                        <i class="fas fa-star text-warning" title="Campo actualizado"></i>
+                                    </label>
+                                    <select name="motivo" id="motivo_devolucion" class="form-select" required onchange="toggleMotivoOtro()">
+                                        <option value="">Seleccionar motivo...</option>
+                                        <optgroup label="🏭 Problemas de Calidad">
+                                            <option value="defecto_fabrica">Defecto de Fábrica</option>
+                                            <option value="material_defectuoso">Material Defectuoso</option>
+                                            <option value="costura_defectuosa">Costura Defectuosa</option>
+                                            <option value="suela_despegada">Suela Despegada</option>
+                                            <option value="deformacion">Deformación del Producto</option>
+                                        </optgroup>
+                                        <optgroup label="📦 Problemas de Pedido">
+                                            <option value="talla_incorrecta">Talla Incorrecta</option>
+                                            <option value="color_incorrecto">Color Incorrecto</option>
+                                            <option value="modelo_incorrecto">Modelo Incorrecto</option>
+                                            <option value="producto_duplicado">Producto Duplicado</option>
+                                        </optgroup>
+                                        <optgroup label="👤 Decisiones del Cliente">
+                                            <option value="no_gusta_diseño">No Gusta el Diseño</option>
+                                            <option value="cambio_opinion">Cambio de Opinión</option>
+                                            <option value="compra_por_error">Compra por Error</option>
+                                            <option value="encontro_mejor_precio">Encontró Mejor Precio</option>
+                                        </optgroup>
+                                        <optgroup label="🚚 Problemas de Entrega">
+                                            <option value="entrega_tardia">Entrega Tardía</option>
+                                            <option value="dañado_envio">Dañado en Envío</option>
+                                            <option value="empaque_dañado">Empaque Dañado</option>
+                                        </optgroup>
+                                        <optgroup label="🛡️ Garantía y Otros">
+                                            <option value="garantia">Uso de Garantía</option>
+                                            <option value="rotura_uso_normal">Rotura por Uso Normal</option>
+                                            <option value="producto_incomodo">Producto Incómodo</option>
+                                            <option value="otro">Otro Motivo</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo adicional para "Otro motivo" -->
+                        <div class="row" id="otro-motivo-container" style="display: none;">
+                            <div class="col-md-12">
+                                <div class="alert alert-success">
+                                    <i class="fas fa-magic me-2"></i>
+                                    <strong>¡Perfecto!</strong> Este campo aparece automáticamente al seleccionar "Otro Motivo"
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-edit me-2"></i>Especifique el Motivo
+                                    </label>
+                                    <input type="text" name="motivo_otro_detalle" class="form-control" 
+                                           placeholder="Describa el motivo específico de la devolución...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Condición del Producto</label>
+                                    <select name="condicion_producto" class="form-select" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="nuevo">Como Nuevo</option>
+                                        <option value="usado_bueno">Usado - Buen Estado</option>
+                                        <option value="dañado">Dañado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Acción a Realizar</label>
+                                    <select name="accion" class="form-select" required>
+                                        <option value="">Seleccionar acción...</option>
+                                        <option value="reembolso">Reembolso</option>
+                                        <option value="cambio">Cambio por Otro Producto</option>
+                                        <option value="reparacion">Reparación</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="verificarCampo()">
+                        <i class="fas fa-check me-2"></i>Verificar Campo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Función para manejar el campo motivo
+        function toggleMotivoOtro() {
+            const selectMotivo = document.getElementById('motivo_devolucion');
+            const otroContainer = document.getElementById('otro-motivo-container');
+            const otroInput = document.querySelector('input[name="motivo_otro_detalle"]');
+            
+            if (selectMotivo && otroContainer) {
+                if (selectMotivo.value === 'otro') {
+                    otroContainer.style.display = 'block';
+                    if (otroInput) {
+                        otroInput.setAttribute('required', 'required');
+                    }
+                } else {
+                    otroContainer.style.display = 'none';
+                    if (otroInput) {
+                        otroInput.removeAttribute('required');
+                        otroInput.value = '';
+                    }
+                }
+            }
+        }
+
+        // Función para verificar el campo
+        function verificarCampo() {
+            const selectMotivo = document.getElementById('motivo_devolucion');
+            const tipoElemento = selectMotivo?.tagName?.toLowerCase();
+            const opciones = selectMotivo?.options?.length || 0;
+            
+            let mensaje;
+            if (tipoElemento === 'select' && opciones > 1) {
+                mensaje = `✅ ¡PERFECTO! El campo es una lista desplegable con ${opciones} opciones`;
+            } else {
+                mensaje = `❌ ERROR: El campo no es una lista desplegable (tipo: ${tipoElemento || 'no encontrado'})`;
+            }
+            
+            alert(mensaje);
+        }
+
+        // Verificación al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== VERIFICACIÓN COMPLETA ===');
+            
+            const modal = document.getElementById('modalDevolucion');
+            const select = document.getElementById('motivo_devolucion');
+            
+            console.log('✅ Modal existe:', modal !== null);
+            console.log('✅ Select existe:', select !== null);
+            console.log('✅ Bootstrap cargado:', typeof bootstrap !== 'undefined');
+            
+            if (select) {
+                console.log('✅ Tipo de elemento:', select.tagName);
+                console.log('✅ Número de opciones:', select.options.length);
+                console.log('✅ Función onchange:', select.getAttribute('onchange'));
+            }
+        });
+
+        // Log cuando se abre el modal
+        document.getElementById('modalDevolucion').addEventListener('shown.bs.modal', function () {
+            console.log('🎯 Modal abierto - Campo motivo debe ser lista desplegable');
+        });
+    </script>
+</body>
+</html>

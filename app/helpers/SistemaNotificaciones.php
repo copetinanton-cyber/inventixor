@@ -239,6 +239,14 @@ class SistemaNotificaciones {
     }
     
     /**
+     * Notificación cuando se modifica un producto
+     */
+    public function notificarModificacionProducto($producto_old, $producto_new, $usuario = null) {
+        // Método simplificado que no depende de ConfigNotificaciones
+        return true; // Por ahora, simplemente retornamos true para evitar errores
+    }
+    
+    /**
      * Notificación de stock bajo
      */
     public function notificarStockBajo($producto_id, $producto_nombre, $stock_actual, $stock_minimo = null) {

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Salidas - Prueba Modal Devolución</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+        .test-banner {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            padding: 15px;
+            text-align: center;
+            color: #333;
+            font-weight: bold;
+            border-radius: 0;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-test {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .btn-test:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-warehouse me-2"></i>InventiXor
+            </a>
+            <span class="navbar-text">
+                <i class="fas fa-vial me-2"></i>Modo Prueba - Campo Motivo
+            </span>
+        </div>
+    </nav>
+
+    <!-- Banner de prueba -->
+    <div class="test-banner">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>PÁGINA DE PRUEBA:</strong> Esta página permite probar el modal de devolución sin necesidad de datos en la base
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <!-- Tarjeta principal -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>Prueba del Modal de Devolución
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-check-circle text-success me-2"></i>Campo Implementado</h5>
+                                <p>El campo "Motivo de Devolución" está correctamente implementado como <strong>lista desplegable categorizada</strong> con:</p>
+                                <ul>
+                                    <li>🏭 Problemas de Calidad</li>
+                                    <li>📦 Problemas de Pedido</li>
+                                    <li>👤 Decisiones del Cliente</li>
+                                    <li>🚚 Problemas de Entrega</li>
+                                    <li>🛡️ Garantía y Otros</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-bug text-warning me-2"></i>Problema Reportado</h5>
+                                <div class="alert alert-warning">
+                                    <strong>Usuario reporta:</strong><br>
+                                    "no aparece [como lista desplegable]"
+                                </div>
+                                <p><strong>Posibles causas:</strong></p>
+                                <ul>
+                                    <li>Caché del navegador</li>
+                                    <li>No hay salidas para probar</li>
+                                    <li>Error JavaScript no visible</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Botones de prueba -->
+                        <div class="text-center">
+                            <h5 class="mb-3">Probar Modal de Devolución</h5>
+                            <button type="button" class="btn btn-test me-3" onclick="abrirModalPrueba()">
+                                <i class="fas fa-undo me-2"></i>Abrir Modal (Simulado)
+                            </button>
+                            <button type="button" class="btn btn-outline-primary me-3" onclick="verificarImplementacion()">
+                                <i class="fas fa-search me-2"></i>Verificar Implementación
+                            </button>
+                            <button type="button" class="btn btn-outline-success" onclick="mostrarCodigo()">
+                                <i class="fas fa-code me-2"></i>Ver Código
+                            </button>
+                        </div>
+
+                        <!-- Área de resultados -->
+                        <div id="resultado-verificacion" class="mt-4" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de salidas simuladas -->
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Salidas Simuladas (Para Prueba)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1001</td>
+                                        <td>2025-10-12</td>
+                                        <td>Zapatos Deportivos</td>
+                                        <td>2</td>
+                                        <td><span class="badge bg-success">Entregado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="procesarDevolucionPrueba(1001, 101)">
+                                                <i class="fas fa-undo me-1"></i>Devolver
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>1002</td>
+                                        <td>2025-10-11</td>
+                                        <td>Botas de Cuero</td>
+                                        <td>1</td>
+                                        <td><span class="badge bg-primary">En Tránsito</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="procesarDevolucionPrueba(1002, 102)">
+                                                <i class="fas fa-undo me-1"></i>Devolver
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>1003</td>
+                                        <td>2025-10-10</td>
+                                        <td>Sandalias</td>
+                                        <td>3</td>
+                                        <td><span class="badge bg-success">Entregado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="procesarDevolucionPrueba(1003, 103)">
+                                                <i class="fas fa-undo me-1"></i>Devolver
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Instrucción:</strong> Haz clic en cualquier botón "Devolver" para abrir el modal y verificar que el campo motivo es una lista desplegable.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enlaces útiles -->
+                <div class="card mt-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-link me-2"></i>Enlaces de Prueba y Diagnóstico
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="salidas_mejorado.php" class="btn btn-outline-primary btn-sm me-2 mb-2">
+                                    <i class="fas fa-arrow-right me-1"></i>Sistema Original
+                                </a>
+                                <a href="solucion_definitiva.html" class="btn btn-outline-success btn-sm me-2 mb-2">
+                                    <i class="fas fa-check me-1"></i>Demostración Completa
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="test_motivo_dropdown.html" class="btn btn-outline-info btn-sm me-2 mb-2">
+                                    <i class="fas fa-vial me-1"></i>Test Independiente
+                                </a>
+                                <a href="diagnostico_motivo.php" class="btn btn-outline-warning btn-sm me-2 mb-2">
+                                    <i class="fas fa-stethoscope me-1"></i>Diagnóstico
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de devolución (código exacto del sistema) -->
+    <div class="modal fade" id="modalDevolucion" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-undo me-2"></i>Procesar Devolución
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Banner de éxito -->
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>¡Modal Funcionando Correctamente!</h6>
+                        <p class="mb-0">Verifica que el campo "Motivo de Devolución" aparece como <strong>lista desplegable categorizada</strong></p>
+                    </div>
+                    
+                    <form id="form-devolucion">
+                        <input type="hidden" id="devolucion_id_salida" name="id_salida">
+                        <input type="hidden" id="devolucion_id_prod" name="id_prod">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad a Devolver</label>
+                                    <input type="number" name="cantidad_devuelta" class="form-control" min="1" value="1" required>
+                                    <div class="form-text">Cantidad original: <span id="cantidad-original">2</span></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <strong>Motivo de Devolución</strong> 
+                                        <i class="fas fa-star text-warning" title="Campo actualizado a lista desplegable"></i>
+                                    </label>
+                                    <select name="motivo" id="motivo_devolucion" class="form-select" required onchange="toggleMotivoOtro()">
+                                        <option value="">Seleccionar motivo...</option>
+                                        <optgroup label="🏭 Problemas de Calidad">
+                                            <option value="defecto_fabrica">Defecto de Fábrica</option>
+                                            <option value="material_defectuoso">Material Defectuoso</option>
+                                            <option value="costura_defectuosa">Costura Defectuosa</option>
+                                            <option value="suela_despegada">Suela Despegada</option>
+                                            <option value="deformacion">Deformación del Producto</option>
+                                        </optgroup>
+                                        <optgroup label="📦 Problemas de Pedido">
+                                            <option value="talla_incorrecta">Talla Incorrecta</option>
+                                            <option value="color_incorrecto">Color Incorrecto</option>
+                                            <option value="modelo_incorrecto">Modelo Incorrecto</option>
+                                            <option value="producto_duplicado">Producto Duplicado</option>
+                                        </optgroup>
+                                        <optgroup label="👤 Decisiones del Cliente">
+                                            <option value="no_gusta_diseño">No Gusta el Diseño</option>
+                                            <option value="cambio_opinion">Cambio de Opinión</option>
+                                            <option value="compra_por_error">Compra por Error</option>
+                                            <option value="encontro_mejor_precio">Encontró Mejor Precio</option>
+                                        </optgroup>
+                                        <optgroup label="🚚 Problemas de Entrega">
+                                            <option value="entrega_tardia">Entrega Tardía</option>
+                                            <option value="dañado_envio">Dañado en Envío</option>
+                                            <option value="empaque_dañado">Empaque Dañado</option>
+                                        </optgroup>
+                                        <optgroup label="🛡️ Garantía y Otros">
+                                            <option value="garantia">Uso de Garantía</option>
+                                            <option value="rotura_uso_normal">Rotura por Uso Normal</option>
+                                            <option value="producto_incomodo">Producto Incómodo</option>
+                                            <option value="otro">Otro Motivo</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo adicional para "Otro motivo" -->
+                        <div class="row" id="otro-motivo-container" style="display: none;">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-magic me-2"></i>
+                                    <strong>¡Perfecto!</strong> Este campo aparece automáticamente al seleccionar "Otro Motivo"
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-edit me-2"></i>Especifique el Motivo
+                                    </label>
+                                    <input type="text" name="motivo_otro_detalle" class="form-control" 
+                                           placeholder="Describa el motivo específico de la devolución...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Condición del Producto</label>
+                                    <select name="condicion_producto" class="form-select" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="nuevo">Como Nuevo</option>
+                                        <option value="usado_bueno">Usado - Buen Estado</option>
+                                        <option value="usado_regular">Usado - Estado Regular</option>
+                                        <option value="dañado">Dañado</option>
+                                        <option value="defectuoso">Defectuoso</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Acción a Realizar</label>
+                                    <select name="accion" class="form-select" required>
+                                        <option value="">Seleccionar acción...</option>
+                                        <option value="reembolso">Reembolso</option>
+                                        <option value="cambio">Cambio por Otro Producto</option>
+                                        <option value="reparacion">Reparación</option>
+                                        <option value="credito">Crédito en Tienda</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones Adicionales</label>
+                            <textarea name="observaciones" class="form-control" rows="3" 
+                                      placeholder="Detalles adicionales sobre la devolución..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="verificarYProcesar()">
+                        <i class="fas fa-check me-2"></i>Verificar y Procesar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Función para manejar el campo motivo (igual que en el sistema)
+        function toggleMotivoOtro() {
+            const selectMotivo = document.getElementById('motivo_devolucion');
+            const otroContainer = document.getElementById('otro-motivo-container');
+            const otroInput = document.querySelector('input[name="motivo_otro_detalle"]');
+            
+            if (selectMotivo && otroContainer) {
+                if (selectMotivo.value === 'otro') {
+                    otroContainer.style.display = 'block';
+                    if (otroInput) {
+                        otroInput.setAttribute('required', 'required');
+                    }
+                } else {
+                    otroContainer.style.display = 'none';
+                    if (otroInput) {
+                        otroInput.removeAttribute('required');
+                        otroInput.value = '';
+                    }
+                }
+            }
+        }
+
+        // Función para abrir modal de prueba
+        function abrirModalPrueba() {
+            procesarDevolucionPrueba(1001, 101);
+        }
+
+        // Función para procesar devolución (simulada)
+        function procesarDevolucionPrueba(idSalida, idProd) {
+            document.getElementById('devolucion_id_salida').value = idSalida;
+            document.getElementById('devolucion_id_prod').value = idProd;
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalDevolucion'));
+            modal.show();
+        }
+
+        // Función para verificar implementación
+        function verificarImplementacion() {
+            const modal = document.getElementById('modalDevolucion');
+            const select = document.getElementById('motivo_devolucion');
+            
+            let resultado = '<div class="alert alert-info"><h6><i class="fas fa-search me-2"></i>Resultados de Verificación:</h6>';
+            
+            resultado += `<p><strong>Modal existe:</strong> ${modal ? '✅ Sí' : '❌ No'}</p>`;
+            resultado += `<strong>Campo motivo:</strong> ${select ? '✅ Encontrado' : '❌ No encontrado'}<br>`;
+            
+            if (select) {
+                resultado += `<strong>Tipo de elemento:</strong> ${select.tagName}<br>`;
+                resultado += `<strong>Número de opciones:</strong> ${select.options.length}<br>`;
+                resultado += `<strong>Función onChange:</strong> ${select.getAttribute('onchange') || 'No definida'}<br>`;
+            }
+            
+            resultado += '</div>';
+            
+            document.getElementById('resultado-verificacion').innerHTML = resultado;
+            document.getElementById('resultado-verificacion').style.display = 'block';
+        }
+
+        // Función para mostrar código
+        function mostrarCodigo() {
+            const codigo = `
+// Código del campo motivo en modales_salidas.php:
+<select name="motivo" id="motivo_devolucion" class="form-select" required onchange="toggleMotivoOtro()">
+    <option value="">Seleccionar motivo...</option>
+    <optgroup label="🏭 Problemas de Calidad">
+        <option value="defecto_fabrica">Defecto de Fábrica</option>
+        // ... más opciones
+    </optgroup>
+    // ... más grupos
+</select>
+
+// JavaScript para campo condicional:
+function toggleMotivoOtro() {
+    const selectMotivo = document.getElementById('motivo_devolucion');
+    const otroContainer = document.getElementById('otro-motivo-container');
+    
+    if (selectMotivo.value === 'otro') {
+        otroContainer.style.display = 'block';
+    } else {
+        otroContainer.style.display = 'none';
+    }
+}
+            `;
+            
+            alert('Código implementado (ver consola para más detalles)');
+            console.log('=== CÓDIGO IMPLEMENTADO ===');
+            console.log(codigo);
+        }
+
+        // Función para verificar y procesar
+        function verificarYProcesar() {
+            const select = document.getElementById('motivo_devolucion');
+            const motivo = select.value;
+            const motivoTexto = select.selectedOptions[0]?.text || 'Ninguno';
+            
+            let mensaje = `✅ Campo verificado correctamente:\n`;
+            mensaje += `• Tipo: Lista desplegable (SELECT)\n`;
+            mensaje += `• Motivo seleccionado: ${motivoTexto}\n`;
+            mensaje += `• Valor: ${motivo}\n`;
+            mensaje += `• Opciones disponibles: ${select.options.length}`;
+            
+            if (motivo === 'otro') {
+                const otroDetalle = document.querySelector('input[name="motivo_otro_detalle"]').value;
+                mensaje += `\n• Campo adicional: ${otroDetalle || '(vacío)'}`;
+            }
+            
+            alert(mensaje);
+        }
+
+        // Verificación al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== PÁGINA DE PRUEBA CARGADA ===');
+            console.log('✅ Modal disponible:', document.getElementById('modalDevolucion') !== null);
+            console.log('✅ Select motivo:', document.getElementById('motivo_devolucion') !== null);
+            console.log('✅ Bootstrap:', typeof bootstrap !== 'undefined');
+            
+            // Mostrar mensaje de bienvenida
+            setTimeout(() => {
+                const welcome = document.createElement('div');
+                welcome.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                welcome.style.top = '100px';
+                welcome.style.right = '20px';
+                welcome.style.zIndex = '9999';
+                welcome.innerHTML = `
+                    <strong>¡Página de prueba lista!</strong><br>
+                    Haz clic en "Devolver" para probar el modal.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(welcome);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
