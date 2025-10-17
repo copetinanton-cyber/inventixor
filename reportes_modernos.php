@@ -1375,19 +1375,20 @@ foreach ($reportes_disponibles as $id => $reporte) {
 
         // Exportar reporte (placeholder)
         function exportarReporte(formato) {
-            alert(`Exportando reporte en formato ${formato.toUpperCase()}...`);
+            const msg = `Exportando reporte en formato ${formato.toUpperCase()}...`;
+            if (typeof showToast === 'function') { showToast(msg, 'info'); } else { alert(msg); }
             // Aquí se implementaría la lógica de exportación
         }
 
         // Generar análisis con IA (simulado)
         function generarAnalisisIA() {
-            alert('Generando análisis con Inteligencia Artificial...');
+            if (typeof showToast === 'function') { showToast('Generando análisis con Inteligencia Artificial...', 'info'); } else { alert('Generando análisis con Inteligencia Artificial...'); }
             // Implementación futura de IA
         }
 
         // Generar recomendaciones
         function generarRecomendaciones() {
-            alert('Generando recomendaciones basadas en datos históricos...');
+            if (typeof showToast === 'function') { showToast('Generando recomendaciones basadas en datos históricos...', 'info'); } else { alert('Generando recomendaciones basadas en datos históricos...'); }
             // Implementación futura de recomendaciones
         }
 
@@ -1408,5 +1409,6 @@ foreach ($reportes_disponibles as $id => $reporte) {
             });
         });
     </script>
+    <script src="public/js/notifications.js"></script>
 </body>
 </html>

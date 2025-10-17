@@ -61,7 +61,7 @@ if (isset($_POST['action'])) {
 
             // Verificar existencia y propietario (usar consulta preparada)
             $sel = $conn->prepare('SELECT num_doc FROM Reportes WHERE id_repor = ?');
-            if (!$sel) { throw new Exception('Error preparando consulta'); }
+            if (!$sel) { throw new Exception('Error preparando consulta: ' . $conn->error); }
             $sel->bind_param('i', $id_repor);
             $sel->execute();
             $res = $sel->get_result();
@@ -80,13 +80,18 @@ if (isset($_POST['action'])) {
 
             // Regla: el creador puede eliminar su propio reporte; solo admin puede eliminar reportes de otros usuarios
             if ($creador != $actual && $rolActual !== 'admin') {
-                throw new Exception('No autorizado para eliminar este reporte');
+                throw new Exception('FORBIDDEN: No autorizado para eliminar este reporte');
             }
 
             $stmtDel = $conn->prepare('DELETE FROM Reportes WHERE id_repor = ?');
+            if (!$stmtDel) { throw new Exception('Error preparando eliminación: ' . $conn->error); }
             $stmtDel->bind_param('i', $id_repor);
             $stmtDel->execute();
+            $af = $conn->affected_rows;
             $stmtDel->close();
+            if ($af <= 0) {
+                throw new Exception('No se eliminó ningún registro (puede que ya no exista)');
+            }
 
             // Registrar en historial solo para admin y coordinador
             if (in_array($rolActual, ['admin','coordinador'])) {
@@ -100,6 +105,17 @@ if (isset($_POST['action'])) {
             exit;
         }
 
+        // Mapear acciones directas a tipo_reporte para reutilizar el switch
+        if (in_array($action, [
+            'obtener_kpis',
+            'obtener_datos_graficos',
+            'informe_salidas_avanzado',
+            'kpis_rotacion',
+            'pedidos_sugeridos',
+            'kpis_avanzados_bi'
+        ], true)) {
+            $_POST['tipo_reporte'] = $action;
+        }
         $tipo_reporte = $_POST['tipo_reporte'] ?? '';
         $datos = [];
         
@@ -266,6 +282,7 @@ if (isset($_POST['action'])) {
                         HAVING total_productos > 0
                         ORDER BY total_productos DESC";
                 $result = $conn->query($sql);
+                if (!$result) { throw new Exception('Error en gráfico categorías: ' . $conn->error); }
                 $graficos['categorias'] = $result->fetch_all(MYSQLI_ASSOC);
                 
                 // Datos para gráfico de niveles de stock
@@ -276,6 +293,7 @@ if (isset($_POST['action'])) {
                         SUM(CASE WHEN CAST(stock AS UNSIGNED) > 30 THEN 1 ELSE 0 END) as alto
                         FROM Productos";
                 $result = $conn->query($sql);
+                if (!$result) { throw new Exception('Error en gráfico niveles stock: ' . $conn->error); }
                 $graficos['stock_niveles'] = $result->fetch_assoc();
                 
                 // Datos para gráfico de top productos vendidos
@@ -288,6 +306,7 @@ if (isset($_POST['action'])) {
                         ORDER BY total_vendido DESC
                         LIMIT 10";
                 $result = $conn->query($sql);
+                if (!$result) { throw new Exception('Error en gráfico top productos: ' . $conn->error); }
                 $graficos['top_productos'] = $result->fetch_all(MYSQLI_ASSOC);
                 
                 $output = json_encode(['success' => true, 'graficos' => $graficos]);
@@ -514,6 +533,20 @@ if (isset($_POST['action'])) {
             default:
                 throw new Exception('Tipo de reporte no válido: ' . $tipo_reporte);
         }
+
+        // Si llegamos aquí y existe $sql, ejecutar la consulta genérica y devolver datos
+        if (isset($sql) && is_string($sql) && $sql !== '') {
+            $result = $conn->query($sql);
+            if (!$result) {
+                throw new Exception('Error ejecutando reporte: ' . $conn->error);
+            }
+            // Obtener todos los registros
+            $datos = $result->fetch_all(MYSQLI_ASSOC);
+            $output = json_encode(['success' => true, 'tipo' => $tipo_reporte, 'datos' => $datos]);
+            ob_clean();
+            echo $output;
+            exit;
+        }
         
     } catch (Exception $e) {
         // Limpiar COMPLETAMENTE cualquier salida acumulada
@@ -539,9 +572,13 @@ if (isset($_POST['action'])) {
         exit;
     }
     
-    // Enviar output limpio y terminar
+    // Enviar output limpio y terminar (garantizar cuerpo no vacío)
     $output = ob_get_clean();
-    echo $output;
+    if ($output === null || trim($output) === '') {
+        echo json_encode(['success' => false, 'error' => 'Sin salida del servidor']);
+    } else {
+        echo $output;
+    }
     exit;
 }
 ?>
@@ -1330,6 +1367,9 @@ if (isset($_POST['action'])) {
             <!-- Summary Cards -->
             <div id="summaryCards" class="summary-cards"></div>
 
+            <!-- Contenedor dinámico para reportes especializados (salidas/rotación/pedidos) -->
+            <div id="tableContainer" class="mt-3"></div>
+
             <!-- Tabla de Resultados -->
             <div class="table-responsive">
                 <table id="resultTable" class="table result-table">
@@ -1344,7 +1384,26 @@ if (isset($_POST['action'])) {
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="public/js/notifications.js"></script>
     <script>
+        // Helper de notificaciones (toast/alert)
+        function showToast(message, type = 'info', autoHideMs = 4000) {
+            const color = type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'info';
+            const icon = color==='success'?'fa-check-circle':color==='danger'?'fa-times-circle':color==='warning'?'fa-exclamation-triangle':'fa-info-circle';
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${color} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 360px; box-shadow: 0 6px 20px rgba(0,0,0,.15)';
+            toast.innerHTML = `
+                <div class="d-flex align-items-start">
+                  <div class="me-2"><i class="fas ${icon}"></i></div>
+                  <div style="flex:1">${message}</div>
+                  <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+                </div>`;
+            document.body.appendChild(toast);
+            if (autoHideMs > 0) {
+                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, autoHideMs);
+            }
+        }
         let currentReportType = '';
         let currentReportData = [];
         
@@ -1442,12 +1501,12 @@ if (isset($_POST['action'])) {
                         mostrarResultados(data);
                     }
                 } else {
-                    alert('Error generando reporte: ' + data.error);
+                    showToast('Error generando reporte: ' + (data.error || 'Desconocido'), 'error');
                 }
             })
             .catch(error => {
                 document.getElementById('loadingSpinner').style.display = 'none';
-                alert('Error de conexión: ' + error.message);
+                showToast('Error de conexión: ' + error.message, 'error');
             });
         }
 
@@ -1477,7 +1536,7 @@ if (isset($_POST['action'])) {
                 generarTabla(data.datos);
                 document.getElementById('resultContainer').style.display = 'block';
             } else {
-                alert('No se encontraron datos para este reporte');
+                showToast('No se encontraron datos para este reporte', 'warning');
             }
         }
 
@@ -1604,19 +1663,19 @@ if (isset($_POST['action'])) {
                         if (tr) tr.remove();
                     }
                 })
-                .catch(err => alert('Error: ' + err.message));
+                .catch(err => showToast('Error: ' + err.message, 'error'));
         }
 
         function exportarReporte(formato) {
             if (currentReportData.length === 0) {
-                alert('No hay datos para exportar');
+                showToast('No hay datos para exportar', 'warning');
                 return;
             }
             
             if (formato === 'csv') {
                 exportarCSV();
             } else if (formato === 'excel') {
-                alert('Exportación a Excel en desarrollo. Use CSV por el momento.');
+                showToast('Exportación a Excel en desarrollo. Use CSV por el momento.', 'info');
             }
         }
 

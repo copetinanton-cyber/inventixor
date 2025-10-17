@@ -628,9 +628,9 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
                                        class="btn btn-warning btn-action" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="productos.php?eliminar=<?php echo $row['id_prod']; ?>" 
-                                       class="btn btn-danger btn-action" title="Eliminar"
-                                       onclick="return confirm('¿Está seguro de eliminar este producto?')">
+                                                <a href="productos.php?eliminar=<?php echo $row['id_prod']; ?>" 
+                                                    class="btn btn-danger btn-action" title="Eliminar"
+                                                    onclick="return confirmEliminarProducto(event, <?php echo $row['id_prod']; ?>)">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
@@ -854,6 +854,17 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
     <!-- Sistema de Notificaciones -->
     <script src="public/js/notifications.js"></script>
     <script src="public/js/auto-notifications.js"></script>
+
+    <script>
+    function confirmEliminarProducto(e, id) {
+        const ok = confirm('¿Está seguro de eliminar este producto? Esta acción no se puede deshacer.');
+        if (!ok) { e.preventDefault(); return false; }
+        if (typeof showToast === 'function') {
+            showToast('Eliminando producto #' + id + '...', 'info');
+        }
+        return true;
+    }
+    </script>
 
     <!-- Sistema Responsive -->
     <script src="public/js/responsive-sidebar.js"></script>

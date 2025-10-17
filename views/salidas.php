@@ -97,7 +97,7 @@
                         <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'auxiliar'): ?>
                             <button class="btn btn-outline-primary btn-sm" onclick="openRetornoModal(<?= $salida['id'] ?>, '<?= htmlspecialchars($salida['producto']) ?>')">Retorno a Inventario</button>
                         <?php else: ?>
-                            <a href="salidas.php?eliminar=<?= $salida['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar esta salida?')">Eliminar</a>
+                            <a href="salidas.php?eliminar=<?= $salida['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirmarEliminarSalida(event, <?= $salida['id'] ?>)">Eliminar</a>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -183,7 +183,15 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="public/js/notifications.js"></script>
 <script>
+function confirmarEliminarSalida(e, id) {
+    const ok = confirm('¿Seguro que deseas eliminar esta salida?');
+    if (!ok) { e.preventDefault(); return false; }
+    if (typeof showToast === 'function') { showToast('Eliminando salida...', 'info'); }
+    return true;
+}
+
 function openRetornoModal(salidaId, producto) {
         document.getElementById('retornoSalidaId').value = salidaId;
         document.getElementById('retornoProducto').value = producto;
@@ -195,10 +203,10 @@ function openRetornoModal(salidaId, producto) {
 function enviarRetorno() {
         var salidaId = document.getElementById('retornoSalidaId').value;
         var motivo = document.getElementById('retornoMotivo').value;
-        if (!motivo.trim()) {
-                alert('Debes ingresar el motivo del retorno.');
-                return;
-        }
+    if (!motivo.trim()) {
+        if (typeof showToast === 'function') { showToast('Debes ingresar el motivo del retorno.', 'warning'); } else { alert('Debes ingresar el motivo del retorno.'); }
+        return;
+    }
         var formData = new FormData();
         formData.append('solicitar_retorno', '1');
         formData.append('salida_id', salidaId);
@@ -209,14 +217,14 @@ function enviarRetorno() {
         })
         .then(response => response.json())
         .then(data => {
-                if (data.success) {
-                        alert('Solicitud enviada correctamente.');
-                        location.reload();
-                } else {
-                        alert('Error: ' + (data.error || 'No se pudo enviar la solicitud.'));
-                }
+        if (data.success) {
+            if (typeof showToast === 'function') { showToast('Solicitud enviada correctamente.', 'success'); } else { alert('Solicitud enviada correctamente.'); }
+            location.reload();
+        } else {
+            if (typeof showToast === 'function') { showToast('Error: ' + (data.error || 'No se pudo enviar la solicitud.'), 'error'); } else { alert('Error: ' + (data.error || 'No se pudo enviar la solicitud.')); }
+        }
         })
-        .catch(() => alert('Error de red al enviar la solicitud.'));
+    .catch(() => { if (typeof showToast === 'function') { showToast('Error de red al enviar la solicitud.', 'error'); } else { alert('Error de red al enviar la solicitud.'); } });
 }
 </script>
 </body>

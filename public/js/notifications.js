@@ -1,3 +1,47 @@
+// Reusable toast notifications for Inventixor
+// Requires Bootstrap 5 CSS (for alert styles) and Font Awesome (optional icons)
+(function(){
+  function ensureContainer(){
+    let c = document.getElementById('ix-toast-container');
+    if(!c){
+      c = document.createElement('div');
+      c.id = 'ix-toast-container';
+      c.style.cssText = 'position:fixed; top:20px; right:20px; z-index:9999; max-width: 380px;';
+      document.body.appendChild(c);
+    }
+    return c;
+  }
+
+  function showToast(message, type='info', autoHideMs=4000){
+    const color = type==='success'?'success':type==='error'?'danger':type==='warning'?'warning':'info';
+    const icon = color==='success'?'fa-check-circle':color==='danger'?'fa-times-circle':color==='warning'?'fa-exclamation-triangle':'fa-info-circle';
+    const container = ensureContainer();
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${color} alert-dismissible fade show shadow`; 
+    toast.style.marginBottom = '10px';
+    toast.innerHTML = `
+      <div class="d-flex align-items-start">
+        <div class="me-2"><i class="fas ${icon}"></i></div>
+        <div style="flex:1">${message}</div>
+        <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+      </div>`;
+    container.appendChild(toast);
+    if(autoHideMs>0){
+      setTimeout(()=>{ if(toast && toast.parentNode){ toast.parentNode.removeChild(toast); } }, autoHideMs);
+    }
+  }
+
+  // Expose helpers
+  window.showToast = showToast;
+  window.notifySuccess = (m,ms)=>showToast(m,'success',ms||3000);
+  window.notifyError = (m,ms)=>showToast(m,'error',ms||5000);
+  window.notifyWarning = (m,ms)=>showToast(m,'warning',ms||4000);
+  window.notifyInfo = (m,ms)=>showToast(m,'info',ms||4000);
+
+  // Override default alert for better UX
+  const originalAlert = window.alert;
+  window.alert = function(message){ try{ showToast(String(message),'info'); } catch(e){ originalAlert(message); } };
+})();
 /**
  * Sistema de Notificaciones Emergentes para Inventixor
  * Maneja las notificaciones de cambios en productos, categorías y subcategorías

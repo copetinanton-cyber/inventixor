@@ -506,6 +506,7 @@ $pageConfig['MODULE_CONTENT'] = $moduleContent;
 renderResponsivePage($pageConfig);
 ?>
 
+<script src="public/js/notifications.js"></script>
 <script>
 // Funciones específicas del módulo de subcategorías
 function editarSubcategoria(subcategoria) {
@@ -563,6 +564,8 @@ async function enviarFormularioSubcategoria(formData, action) {
         if (response.ok) {
             if (typeof ResponsiveUtils !== 'undefined') {
                 ResponsiveUtils.showNotification(`Subcategoría ${action === 'crear' ? 'creada' : 'actualizada'} exitosamente`, 'success');
+            } else if (typeof showToast === 'function') {
+                showToast(`Subcategoría ${action === 'crear' ? 'creada' : 'actualizada'} exitosamente`, 'success');
             }
             setTimeout(() => location.reload(), 1500);
         } else {
@@ -571,6 +574,8 @@ async function enviarFormularioSubcategoria(formData, action) {
     } catch (error) {
         if (typeof ResponsiveUtils !== 'undefined') {
             ResponsiveUtils.showNotification('Error al procesar la solicitud: ' + error.message, 'error');
+        } else if (typeof showToast === 'function') {
+            showToast('Error al procesar la solicitud: ' + error.message, 'error');
         }
     }
 }

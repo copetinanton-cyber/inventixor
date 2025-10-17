@@ -771,6 +771,8 @@ async function enviarFormularioProveedor(formData, action) {
         if (response.ok) {
             if (typeof ResponsiveUtils !== 'undefined') {
                 ResponsiveUtils.showNotification(`Proveedor ${action === 'agregar' ? 'agregado' : 'actualizado'} exitosamente`, 'success');
+            } else if (typeof showToast === 'function') {
+                showToast(`Proveedor ${action === 'agregar' ? 'agregado' : 'actualizado'} exitosamente`, 'success');
             }
             setTimeout(() => location.reload(), 1500);
         } else {
@@ -779,7 +781,10 @@ async function enviarFormularioProveedor(formData, action) {
     } catch (error) {
         if (typeof ResponsiveUtils !== 'undefined') {
             ResponsiveUtils.showNotification('Error al procesar la solicitud: ' + error.message, 'error');
+        } else if (typeof showToast === 'function') {
+            showToast('Error al procesar la solicitud: ' + error.message, 'error');
         }
     }
 }
-</script>
+    </script>
+    <script src="public/js/notifications.js"></script>

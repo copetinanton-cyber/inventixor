@@ -292,13 +292,19 @@ echo "
 </div>
 </div>
 
+<script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js'></script>
+<script src='public/js/notifications.js'></script>
 <script>
 function exportarReporte(id, formato) {
     window.location.href = 'reportes.php?exportar=individual&id=' + id + '&formato=' + formato;
 }
 
 function mostrarDetalles(id) {
-    alert('Funcionalidad de detalles en desarrollo. ID: ' + id);
+    if (typeof showToast === 'function') {
+        showToast('Funcionalidad de detalles en desarrollo. ID: ' + id, 'info');
+    } else {
+        alert('Funcionalidad de detalles en desarrollo. ID: ' + id);
+    }
 }
 </script>
 

@@ -1166,7 +1166,7 @@ $stats = $db->conn->query("SELECT
             const motivo = document.getElementById('retornoMotivo').value;
             
             if (!motivo.trim()) {
-                alert('Debe especificar el motivo del retorno.');
+                if (typeof showToast === 'function') { showToast('Debe especificar el motivo del retorno.', 'warning'); } else { alert('Debe especificar el motivo del retorno.'); }
                 return;
             }
             
@@ -1182,13 +1182,13 @@ $stats = $db->conn->query("SELECT
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Solicitud enviada correctamente a coordinadores y administradores.');
+                    if (typeof showToast === 'function') { showToast('Solicitud enviada correctamente a coordinadores y administradores.', 'success'); } else { alert('Solicitud enviada correctamente a coordinadores y administradores.'); }
                     bootstrap.Modal.getInstance(document.getElementById('retornoModal')).hide();
                 } else {
-                    alert('Error: ' + (data.error || 'No se pudo enviar la solicitud.'));
+                    if (typeof showToast === 'function') { showToast('Error: ' + (data.error || 'No se pudo enviar la solicitud.'), 'error'); } else { alert('Error: ' + (data.error || 'No se pudo enviar la solicitud.')); }
                 }
             })
-            .catch(() => alert('Error de red al enviar la solicitud.'));
+            .catch(() => { if (typeof showToast === 'function') { showToast('Error de red al enviar la solicitud.', 'error'); } else { alert('Error de red al enviar la solicitud.'); } });
         }
         
         // Confirmar eliminación

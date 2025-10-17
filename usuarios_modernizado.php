@@ -19,97 +19,92 @@ if ($usuario['rol'] === 'auxiliar') {
 // Manejar acciones POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
-    
+
     $action = $_POST['action'] ?? '';
-    
+
     try {
         switch ($action) {
             case 'crear':
                 if (!$es_coordinador) {
                     throw new Exception('No tiene permisos para crear usuarios');
                 }
-                
-                $num_doc = $_POST['num_doc'];
-                $tipo_documento = $_POST['tipo_documento'];
-                $nombres = $_POST['nombres'];
-                $apellidos = $_POST['apellidos'];
-                $telefono = $_POST['telefono'];
-                $correo = $_POST['correo'];
-                $cargo = $_POST['cargo'];
-                $rol = $_POST['rol'];
-                $contrasena = password_hash($_POST['contrasena'], PASSWORD_DEFAULT);
-                
-                // Solo admin puede crear otros admins
+
+                $num_doc = $_POST['num_doc'] ?? '';
+                $tipo_documento = $_POST['tipo_documento'] ?? '';
+                $nombres = $_POST['nombres'] ?? '';
+                $apellidos = $_POST['apellidos'] ?? '';
+                $telefono = $_POST['telefono'] ?? '';
+                $correo = $_POST['correo'] ?? '';
+                $cargo = $_POST['cargo'] ?? '';
+                $rol = $_POST['rol'] ?? '';
+                $contrasena = password_hash($_POST['contrasena'] ?? '', PASSWORD_DEFAULT);
+
                 if ($rol === 'admin' && !$es_admin) {
                     throw new Exception('Solo los administradores pueden crear otros administradores');
                 }
-                
-                // Verificar si el usuario ya existe
+
                 $check_stmt = $pdo->prepare("SELECT num_doc FROM usuarios WHERE num_doc = ?");
                 $check_stmt->execute([$num_doc]);
-                if ($check_stmt->fetch()) {
+                if ($check_stmt->fetch(PDO::FETCH_ASSOC)) {
                     throw new Exception('Ya existe un usuario con este número de documento');
                 }
-                
+
                 $stmt = $pdo->prepare("INSERT INTO usuarios (num_doc, tipo_documento, nombres, apellidos, telefono, correo, cargo, rol, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$num_doc, $tipo_documento, $nombres, $apellidos, $telefono, $correo, $cargo, $rol, $contrasena]);
-                
+
                 echo json_encode(['success' => true, 'message' => 'Usuario creado exitosamente']);
                 break;
-                
-            case 'eliminar':
-                if (!$es_admin) {
-                    throw new Exception('Solo los administradores pueden eliminar usuarios');
+
+            case 'editar':
+                if (!$es_coordinador) {
+                    throw new Exception('No tiene permisos para editar usuarios');
                 }
-                $num_doc = $_POST['num_doc'];
-                // No permitir eliminar a sí mismo
-                if ($num_doc == $usuario['num_doc']) {
-                    throw new Exception('No puede eliminarse a sí mismo');
-                }
-                $stmt = $pdo->prepare("DELETE FROM usuarios WHERE num_doc = ?");
-                $stmt->execute([$num_doc]);
-                echo json_encode(['success' => true, 'message' => 'Usuario eliminado exitosamente']);
-                break;
-                // Solo admin puede editar roles de admin
+
+                $num_doc = $_POST['num_doc'] ?? '';
+                $nombres = $_POST['nombres'] ?? '';
+                $apellidos = $_POST['apellidos'] ?? '';
+                $telefono = $_POST['telefono'] ?? '';
+                $correo = $_POST['correo'] ?? '';
+                $cargo = $_POST['cargo'] ?? '';
+                $rol = $_POST['rol'] ?? '';
+
                 if ($rol === 'admin' && !$es_admin) {
                     throw new Exception('Solo los administradores pueden asignar el rol de administrador');
                 }
-                
+
                 $sql = "UPDATE usuarios SET nombres = ?, apellidos = ?, telefono = ?, correo = ?, cargo = ?, rol = ?";
                 $params = [$nombres, $apellidos, $telefono, $correo, $cargo, $rol];
-                
+
                 if (!empty($_POST['nueva_contrasena'])) {
                     $sql .= ", contrasena = ?";
                     $params[] = password_hash($_POST['nueva_contrasena'], PASSWORD_DEFAULT);
                 }
-                
+
                 $sql .= " WHERE num_doc = ?";
                 $params[] = $num_doc;
-                
+
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
-                
+
                 echo json_encode(['success' => true, 'message' => 'Usuario actualizado exitosamente']);
                 break;
-                
+
             case 'eliminar':
                 if (!$es_admin) {
                     throw new Exception('Solo los administradores pueden eliminar usuarios');
                 }
-                
-                $num_doc = $_POST['num_doc'];
-                
-                // No permitir eliminar a sí mismo
+
+                $num_doc = $_POST['num_doc'] ?? '';
                 if ($num_doc == $usuario['num_doc']) {
                     throw new Exception('No puede eliminarse a sí mismo');
                 }
-                
+
                 $stmt = $pdo->prepare("DELETE FROM usuarios WHERE num_doc = ?");
                 $stmt->execute([$num_doc]);
-                
+
                 echo json_encode(['success' => true, 'message' => 'Usuario eliminado exitosamente']);
                 break;
-                
+
             default:
                 throw new Exception('Acción no válida');
         }

@@ -584,6 +584,8 @@ $pageConfig['MODULE_CONTENT'] = $moduleContent;
 renderResponsivePage($pageConfig);
 ?>
 
+<!-- Notificaciones reutilizables -->
+<script src="public/js/notifications.js"></script>
 <script>
 // Funciones específicas del módulo de usuarios
 async function crearUsuario(formData) {
@@ -598,16 +600,22 @@ async function crearUsuario(formData) {
         if (result.success) {
             if (typeof ResponsiveUtils !== 'undefined') {
                 ResponsiveUtils.showNotification(result.message, 'success');
+            } else if (typeof showToast === 'function') {
+                showToast(result.message, 'success');
             }
             setTimeout(() => location.reload(), 1500);
         } else {
             if (typeof ResponsiveUtils !== 'undefined') {
                 ResponsiveUtils.showNotification(result.message, 'error');
+            } else if (typeof showToast === 'function') {
+                showToast(result.message || 'Error al crear usuario', 'error');
             }
         }
     } catch (error) {
         if (typeof ResponsiveUtils !== 'undefined') {
             ResponsiveUtils.showNotification('Error de conexión: ' + error.message, 'error');
+        } else if (typeof showToast === 'function') {
+            showToast('Error de conexión: ' + error.message, 'error');
         }
     }
 }
@@ -649,16 +657,22 @@ async function eliminarUsuario(id) {
         if (result.success) {
             if (typeof ResponsiveUtils !== 'undefined') {
                 ResponsiveUtils.showNotification(result.message, 'success');
+            } else if (typeof showToast === 'function') {
+                showToast(result.message, 'success');
             }
             setTimeout(() => location.reload(), 1500);
         } else {
             if (typeof ResponsiveUtils !== 'undefined') {
                 ResponsiveUtils.showNotification(result.message, 'error');
+            } else if (typeof showToast === 'function') {
+                showToast(result.message || 'Error al eliminar', 'error');
             }
         }
     } catch (error) {
         if (typeof ResponsiveUtils !== 'undefined') {
             ResponsiveUtils.showNotification('Error de conexión: ' + error.message, 'error');
+        } else if (typeof showToast === 'function') {
+            showToast('Error de conexión: ' + error.message, 'error');
         }
     }
 }
