@@ -27,8 +27,8 @@ $router = new Router();
 $router->get('/', function() { require __DIR__ . '/index.php'; }); // login
 $router->get('/dashboard', function() { require __DIR__ . '/dashboard.php'; });
 $router->get('/productos', [\App\Controllers\ProductosMvcController::class, 'index']);
-$router->get('/salidas', function() { require __DIR__ . '/salidas.php'; });
-$router->post('/salidas', function() { require __DIR__ . '/salidas.php'; });
+$router->get('/salidas', [\App\Controllers\SalidasMvcController::class, 'index']);
+$router->post('/salidas', [\App\Controllers\SalidasMvcController::class, 'index']);
 
 // Despachar
 $router->dispatch();
