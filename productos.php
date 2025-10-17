@@ -504,10 +504,10 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
                         </select>
                     </div>
                     <div class="col-md-1 mb-2">
-                        <input type="text" class="form-control" name="filtro_talla" placeholder="Talla">
+                        <input type="text" class="form-control" name="filtro_talla" placeholder="Talla" value="<?php echo htmlspecialchars($filtro_talla); ?>">
                     </div>
                     <div class="col-md-1 mb-2">
-                        <input type="text" class="form-control" name="filtro_color" placeholder="Color">
+                        <input type="text" class="form-control" name="filtro_color" placeholder="Color" value="<?php echo htmlspecialchars($filtro_color); ?>">
                     </div>
                     <div class="col-md-2 mb-2">
                         <select class="form-select" name="filtro_proveedor">
@@ -581,11 +581,13 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
                         <?php if ($result && $result->num_rows > 0): ?>
                             <?php while($row = $result->fetch_assoc()): 
                                 $stock_num = intval($row['stock']);
-                                $stock_class = '';
+                                // Usar clases Bootstrap para mejor contraste
                                 if ($stock_num == 0) {
-                                    $stock_class = 'stock-critical';
+                                    $stock_class = 'bg-danger';
                                 } elseif ($stock_num <= 10) {
-                                    $stock_class = 'stock-alert';
+                                    $stock_class = 'bg-warning text-dark';
+                                } else {
+                                    $stock_class = 'bg-success';
                                 }
                             ?>
                             <tr>

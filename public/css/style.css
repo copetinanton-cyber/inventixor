@@ -1,4 +1,3 @@
-body {
 /* Variables de color por módulo */
 :root {
     --color-productos: #FFA500;
@@ -12,6 +11,43 @@ body {
     --btn-font: 'Inter', Arial, sans-serif;
     --btn-size: 1rem;
     --btn-padding: 0.5rem 1.2rem;
+}
+
+/* Base */
+body {
+    min-height: 100vh;
+    background: linear-gradient(120deg, #e3e6e8 0%, #cfd8dc 100%);
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 1.05rem;
+    color: #232b32;
+}
+
+.container-fluid, .content, .container {
+    background: #f7f9fa !important;
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(60,72,88,0.10);
+}
+
+.sidebar {
+    min-height: 100vh;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card-title, .sidebar-menu a, .sidebar-menu li, .table th, .table td {
+    font-size: 1.1rem;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+.display-6, .main-title, h1, h2, h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: 'Inter', Arial, sans-serif;
+    color: #2563eb;
+    letter-spacing: 1px;
 }
 
 /* Botón base */
@@ -42,12 +78,6 @@ body {
 }
 
 /* Tipografía y textos */
-.main-title, h1, h2, h3 {
-    font-family: 'Inter', Arial, sans-serif;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-bottom: 1rem;
-}
 .section-title {
     font-size: 1.5rem;
     font-weight: 600;
@@ -99,32 +129,6 @@ body {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: none; }
 }
-    min-height: 100vh;
-    background: linear-gradient(120deg, #e3e6e8 0%, #cfd8dc 100%);
-    font-family: 'Inter', Arial, sans-serif;
-    font-size: 1.05rem;
-    color: #232b32;
-}
-.container-fluid, .content, .container {
-    background: #f7f9fa !important;
-    border-radius: 14px;
-    box-shadow: 0 4px 18px rgba(60,72,88,0.10);
-}
-.sidebar {
-    min-height: 100vh;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-}
-.card {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.card-title, .sidebar-menu a, .sidebar-menu li, .table th, .table td {
-    font-size: 1.1rem;
-    font-family: 'Inter', Arial, sans-serif;
-}
-.display-6, .main-title, h1, h2, h3 {
-    font-size: 2.5rem;
-    font-weight: bold;
-    font-family: 'Inter', Arial, sans-serif;
-    color: #2563eb;
-    letter-spacing: 1px;
-}
+
+/* Ayudas de contraste para badges numéricas */
+.badge.bg-warning { color: #212529; }
