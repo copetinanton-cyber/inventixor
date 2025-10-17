@@ -23,7 +23,7 @@ ID: 1025 - Camiseta Polo Azul      njkkk                   14:25:30
 - ✅ **ID de la categoría** en la notificación
 - ✅ **Nombre de la categoría** en la notificación
 - ✅ **Mensaje descriptivo** con información completa
-
+zxsxxx
 **Ejemplo de notificación mejorada:**
 ```
 🗑️ Categoría Eliminada  
