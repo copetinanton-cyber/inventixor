@@ -9,8 +9,7 @@
 </head>
 <body>
 <div class="container py-4">
-    <!-- DEBUG: Mostrar sesión -->
-    <pre style="background:#f8f9fa;border:1px solid #ccc;padding:8px;">SESSION: <?php print_r($_SESSION); ?></pre>
+
     <h2 class="mb-4">Registrar Salida</h2>
     <?php if (!empty($message)): ?>
         <div class="alert alert-success fade show" role="alert"><?= $message ?></div>

@@ -10,6 +10,9 @@ require_once 'app/helpers/SistemaNotificaciones.php';
 $db = new Database();
 $sistemaNotificaciones = new SistemaNotificaciones($db);
 
+// Verificar si es administrador
+$es_admin = (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'admin');
+
 // Asegurar que $_SESSION['rol'] esté definido
 if (!isset($_SESSION['rol'])) {
     if (isset($_SESSION['user']['num_doc'])) {
@@ -153,10 +156,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_salida'])) {
                             'stock_anterior' => $producto['stock'],
                             'stock_nuevo' => $stock_nuevo
                         ]);
-                        // $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
-                        // $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'editar', $usuario, $rol, $detalles);
-                        // $stmt_hist->execute();
-                        // $stmt_hist->close();
+                        $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
+                        $entidad = 'Salida';
+                        $accion = 'editar';
+                        $stmt_hist->bind_param('sissss', $entidad, $id_salida, $accion, $usuario, $rol, $detalles);
+                        $stmt_hist->execute();
+                        $stmt_hist->close();
                         
                         $producto_nombre = $producto['nombre'];
                         header("Location: salidas.php?action=update&id=$id_salida&producto=" . urlencode($producto_nombre));
@@ -235,10 +240,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar_salida'])) 
                         'stock_anterior' => $producto['stock'],
                         'stock_nuevo' => ($producto['stock'] - $cantidad)
                     ]);
-                        // $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
-                        // $stmt_hist->bind_param('sissss', 'Salida', $id_salida, 'crear', $usuario, $rol, $detalles);
-                        // $stmt_hist->execute();
-                        // $stmt_hist->close();
+                    $stmt_hist = $db->conn->prepare("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES (?, ?, ?, ?, ?, ?)");
+                    $entidad = 'Salida';
+                    $accion = 'crear';
+                    $stmt_hist->bind_param('sissss', $entidad, $id_salida, $accion, $usuario, $rol, $detalles);
+                    $stmt_hist->execute();
+                    $stmt_hist->close();
                 }
 
                 $id_salida = $db->conn->insert_id;
@@ -580,11 +587,13 @@ $stats = $db->conn->query("SELECT
                     <i class="fas fa-exclamation-triangle me-2"></i> Alertas
                 </a>
             </li>
+            <?php if ($es_admin): ?>
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios
                 </a>
             </li>
+            <?php endif; ?>
             <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
@@ -695,9 +704,13 @@ $stats = $db->conn->query("SELECT
                         <label for="cantidad" class="form-label">
                             <i class="fas fa-hashtag me-1"></i>Cantidad
                         </label>
-                        <input type="number" name="cantidad" id="cantidad" class="form-control" 
-                               min="1" required placeholder="0" onchange="validateStock()">
-                        <small class="text-muted">Stock disponible: <span id="stockDisplay">--</span></small>
+                        <div class="input-group">
+                            <input type="number" name="cantidad" id="cantidad" class="form-control" 
+                                   min="1" required placeholder="0" onchange="validateStock()">
+                            <span class="input-group-text bg-light text-muted small">
+                                Stock: <span id="stockDisplay">--</span>
+                            </span>
+                        </div>
                     </div>
                     <div class="col-md-3">
                         <label for="motivo" class="form-label">

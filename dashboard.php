@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 $user = $_SESSION['user'];
+$es_admin = $user['rol'] === 'admin';
 ?>
 <?php
 require_once 'app/models/Producto.php';
@@ -287,11 +288,13 @@ $alertas_count = count(Alerta::getAll());
                     <i class="fas fa-exclamation-triangle me-2"></i> Alertas
                 </a>
             </li>
+            <?php if ($es_admin): ?>
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios
                 </a>
             </li>
+            <?php endif; ?>
             <li class="menu-item">
                 <a href="logout.php" class="menu-link">
                     <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión

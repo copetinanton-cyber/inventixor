@@ -11,10 +11,9 @@ require_once 'includes/responsive-helper.php';
 // Verificar permisos
 $usuario = $_SESSION['user'];
 $es_admin = $usuario['rol'] === 'admin';
-$es_coordinador = $usuario['rol'] === 'coordinador' || $es_admin;
 
-// Solo coordinadores y admins pueden acceder
-if ($usuario['rol'] === 'auxiliar') {
+// Solo administradores pueden gestionar usuarios
+if (!$es_admin) {
     header('Location: dashboard.php');
     exit();
 }
@@ -28,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         switch ($action) {
             case 'crear':
-                if (!$es_coordinador) {
-                    throw new Exception('No tiene permisos para crear usuarios');
+                if (!$es_admin) {
+                    throw new Exception('Solo los administradores pueden crear usuarios');
                 }
                 
                 $num_doc = $_POST['num_doc'];
@@ -64,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
                 
             case 'editar':
-                if (!$es_coordinador) {
-                    throw new Exception('No tiene permisos para editar usuarios');
+                if (!$es_admin) {
+                    throw new Exception('Solo los administradores pueden editar usuarios');
                 }
                 
                 $num_doc = $_POST['num_doc'];
@@ -394,11 +393,55 @@ ob_start();
     </div>
 </div>
 
-<?php
-// Completar el contenido del módulo y generar la página
-$moduleContent = ob_get_clean();
-$pageConfig['MODULE_CONTENT'] = $moduleContent;
-?>
+                    <!-- Filters Section -->
+                    <div class="filters-section animate-fade-in">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5><i class="fas fa-filter me-2"></i>Filtros y Acciones</h5>
+                            <div class="btn-toolbar" role="toolbar">
+                                <?php if ($es_admin): ?>
+                                <button type="button" class="btn btn-create me-2" onclick="crearUsuario()">
+                                    <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
+                                </button>
+                                <?php endif; ?>
+                                <a href="reportes.php" class="btn btn-info">
+                                    <i class="fas fa-chart-bar me-2"></i>Ver Reportes
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <form method="GET" class="row align-items-end">
+                            <div class="col-md-4">
+                                <label for="filtro_nombre" class="form-label">
+                                    <i class="fas fa-search me-1"></i>Buscar por Nombre
+                                </label>
+                                <input type="text" name="filtro_nombre" id="filtro_nombre" class="form-control" 
+                                       placeholder="Nombre o apellido..." value="<?php echo htmlspecialchars($filtro_nombre); ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="filtro_rol" class="form-label">
+                                    <i class="fas fa-user-tag me-1"></i>Filtrar por Rol
+                                </label>
+                                <select name="filtro_rol" id="filtro_rol" class="form-select">
+                                    <option value="">Todos los roles</option>
+                                    <option value="admin" <?php echo $filtro_rol === 'admin' ? 'selected' : ''; ?>>Administrador</option>
+                                    <option value="coordinador" <?php echo $filtro_rol === 'coordinador' ? 'selected' : ''; ?>>Coordinador</option>
+                                    <option value="auxiliar" <?php echo $filtro_rol === 'auxiliar' ? 'selected' : ''; ?>>Auxiliar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="filtro_cargo" class="form-label">
+                                    <i class="fas fa-briefcase me-1"></i>Filtrar por Cargo
+                                </label>
+                                <input type="text" name="filtro_cargo" id="filtro_cargo" class="form-control" 
+                                       placeholder="Cargo..." value="<?php echo htmlspecialchars($filtro_cargo); ?>">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
 <!-- Modales responsivos -->
 <div class="modal fade" id="crearUsuarioModal" tabindex="-1">
@@ -424,11 +467,96 @@ $pageConfig['MODULE_CONTENT'] = $moduleContent;
                                 <option value="pasaporte">Pasaporte</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label for="num_doc" class="form-label">
-                                <i class="fas fa-hashtag me-1"></i>Número de Documento
-                            </label>
-                            <input type="text" name="num_doc" id="num_doc" class="form-control" required>
+                        
+                        <?php if ($usuarios_result->num_rows > 0): ?>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-id-card me-1"></i>Documento</th>
+                                        <th><i class="fas fa-user me-1"></i>Nombre Completo</th>
+                                        <th><i class="fas fa-envelope me-1"></i>Contacto</th>
+                                        <th><i class="fas fa-briefcase me-1"></i>Cargo</th>
+                                        <th><i class="fas fa-user-tag me-1"></i>Rol</th>
+                                        <th><i class="fas fa-chart-bar me-1"></i>Estadísticas</th>
+                                        <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php while($usuario_row = $usuarios_result->fetch_assoc()): ?>
+                                    <tr>
+                                        <td>
+                                            <strong><?php echo number_format($usuario_row['num_doc']); ?></strong>
+                                            <br><small class="text-muted">
+                                                <?php 
+                                                $tipos_doc = [1 => 'CC', 2 => 'CE', 3 => 'PP', 4 => 'TI'];
+                                                echo $tipos_doc[$usuario_row['tipo_documento']] ?? 'N/A';
+                                                ?>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo htmlspecialchars($usuario_row['nombres'] . ' ' . $usuario_row['apellidos']); ?></strong>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <i class="fas fa-phone me-1"></i>
+                                                <?php echo htmlspecialchars($usuario_row['telefono']); ?>
+                                            </div>
+                                            <div>
+                                                <i class="fas fa-envelope me-1"></i>
+                                                <small><?php echo htmlspecialchars($usuario_row['correo']); ?></small>
+                                            </div>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($usuario_row['cargo']); ?></td>
+                                        <td>
+                                            <span class="badge badge-rol badge-<?php echo $usuario_row['rol']; ?>">
+                                                <?php echo ucfirst($usuario_row['rol']); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="text-center">
+                                                <small class="d-block">
+                                                    <i class="fas fa-box me-1"></i>
+                                                    <?php echo $usuario_row['productos_asignados']; ?> productos
+                                                </small>
+                                                <small class="d-block">
+                                                    <i class="fas fa-file-alt me-1"></i>
+                                                    <?php echo $usuario_row['reportes_creados']; ?> reportes
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <!-- Botón Ver Detalles - Todos pueden ver -->
+                                                <button type="button" class="btn btn-outline-info btn-action" 
+                                                        onclick="verDetallesUsuario(<?php echo $usuario_row['num_doc']; ?>, '<?php echo addslashes($usuario_row['nombres'] . ' ' . $usuario_row['apellidos']); ?>', '<?php echo addslashes($usuario_row['correo']); ?>', '<?php echo addslashes($usuario_row['telefono']); ?>', '<?php echo addslashes($usuario_row['cargo']); ?>', '<?php echo $usuario_row['rol']; ?>', <?php echo $usuario_row['productos_asignados']; ?>, <?php echo $usuario_row['reportes_creados']; ?>)"
+                                                        title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                
+                                                <?php if ($es_admin): ?>
+                                                <!-- Botón Editar - Solo administradores -->
+                                                <button type="button" class="btn btn-outline-warning btn-action" 
+                                                        onclick="editarUsuario(<?php echo $usuario_row['num_doc']; ?>, '<?php echo addslashes($usuario_row['nombres']); ?>', '<?php echo addslashes($usuario_row['apellidos']); ?>', '<?php echo addslashes($usuario_row['telefono']); ?>', '<?php echo addslashes($usuario_row['correo']); ?>', '<?php echo addslashes($usuario_row['cargo']); ?>', '<?php echo $usuario_row['rol']; ?>')"
+                                                        title="Editar Usuario">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <?php endif; ?>
+                                                
+                                                <?php if ($es_admin && $usuario_row['num_doc'] != $_SESSION['user']['num_doc']): ?>
+                                                <!-- Botón Eliminar - Solo admin y no puede eliminarse a sí mismo -->
+                                                <button type="button" class="btn btn-outline-danger btn-action"
+                                                        onclick="confirmarEliminar(<?php echo $usuario_row['num_doc']; ?>, '<?php echo addslashes($usuario_row['nombres'] . ' ' . $usuario_row['apellidos']); ?>')"
+                                                        title="Eliminar Usuario">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
                         </div>
                         <div class="col-md-6">
                             <label for="nombres" class="form-label">

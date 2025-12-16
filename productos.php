@@ -37,6 +37,9 @@ if (!isset($_SESSION['rol'])) {
 // Verificar permisos de edición
 $puede_editar = $_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'coordinador';
 
+// Verificar si es administrador
+$es_admin = (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'admin');
+
 // Eliminar producto
 if (isset($_GET['eliminar']) && $puede_editar) {
     $id_producto = intval($_GET['eliminar']);
@@ -387,7 +390,7 @@ $stats_sin_stock = $db->conn->query("SELECT COUNT(*) as sin_stock FROM Productos
                     <i class="fas fa-bell me-2"></i> Alertas
                 </a>
             </li>
-            <?php if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'coordinador'): ?>
+            <?php if ($es_admin): ?>
             <li class="menu-item">
                 <a href="usuarios.php" class="menu-link">
                     <i class="fas fa-users me-2"></i> Usuarios

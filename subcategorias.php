@@ -11,6 +11,9 @@ require_once 'includes/responsive-helper.php';
 $db = new Database();
 $sistemaNotificaciones = new SistemaNotificaciones($db);
 
+// Verificar si es administrador
+$es_admin = (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'admin');
+
 // Asegurar que $_SESSION['rol'] esté definido
 if (!isset($_SESSION['rol'])) {
     if (isset($_SESSION['user']['num_doc'])) {
@@ -222,6 +225,186 @@ $pageConfig = array_merge(ResponsivePageHelper::setActiveModule('subcategorias')
 // Capturar el contenido del módulo
 ob_start();
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Subcategorías - Inventixor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
+    
+    <style>
+            color: white;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .sidebar-menu {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        
+        .menu-item {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .menu-link {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .menu-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding-left: 2rem;
+        }
+        
+        .menu-link.active {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+        
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .filter-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .table-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn-action {
+            margin: 0 2px;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón hamburguesa para móviles -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Overlay para móviles -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-boxes"></i> Inventixor</h3>
+            <p class="mb-0">Sistema de Inventario</p>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.php" class="menu-link">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="productos.php" class="menu-link">
+                    <i class="fas fa-box me-2"></i> Productos
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="categorias.php" class="menu-link">
+                    <i class="fas fa-tags me-2"></i> Categorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="subcategorias.php" class="menu-link active">
+                    <i class="fas fa-tag me-2"></i> Subcategorías
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="proveedores.php" class="menu-link">
+                    <i class="fas fa-truck me-2"></i> Proveedores
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="salidas.php" class="menu-link">
+                    <i class="fas fa-sign-out-alt me-2"></i> Salidas
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="reportes.php" class="menu-link">
+                    <i class="fas fa-chart-bar me-2"></i> Reportes
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="alertas.php" class="menu-link">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Alertas
+                </a>
+            </li>
+            <?php if ($es_admin): ?>
+            <li class="menu-item">
+                <a href="usuarios.php" class="menu-link">
+                    <i class="fas fa-users me-2"></i> Usuarios
+                </a>
+            </li>
+            <?php endif; ?>
+            <li class="menu-item">
+                <a href="logout.php" class="menu-link">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </a>
+            </li>
+        </ul>
+    </div>
 
 <!-- Stats Cards -->
 <div class="container-fluid mb-4">
