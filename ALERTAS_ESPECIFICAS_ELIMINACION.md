@@ -16,14 +16,14 @@ Las notificaciones de eliminación mostraban mensajes genéricos como "Warning" 
 ```
 🗑️ Producto Eliminado
 Producto "Camiseta Polo Azul" (ID: 1025) eliminado del sistema
-ID: 1025 - Camiseta Polo Azul                    14:25:30
+ID: 1025 - Camiseta Polo Azul      njkkk                   14:25:30
 ```
 
 #### **2. Notificaciones Específicas de Categorías** 
 - ✅ **ID de la categoría** en la notificación
 - ✅ **Nombre de la categoría** en la notificación
 - ✅ **Mensaje descriptivo** con información completa
-
+zxsxxx
 **Ejemplo de notificación mejorada:**
 ```
 🗑️ Categoría Eliminada  

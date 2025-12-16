@@ -22,9 +22,15 @@ if (isset($_POST['action'])) {
 
 require_once 'config/db.php';
 
+
 $usuario = $_SESSION['user'];
 $es_admin = $usuario['rol'] === 'admin';
 $es_coordinador = $usuario['rol'] === 'coordinador' || $es_admin;
+// Solo admin y coordinador pueden acceder
+if ($usuario['rol'] === 'auxiliar') {
+    header('Location: dashboard.php');
+    exit;
+}
 
 // Manejar solicitudes AJAX para generar reportes PRIMERO
 if (isset($_POST['action'])) {
@@ -45,6 +51,71 @@ if (isset($_POST['action'])) {
     header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
     
     try {
+        $action = $_POST['action'] ?? '';
+        // Acción específica: eliminar reporte guardado (solo admin puede eliminar de otros; el creador puede eliminar el suyo)
+        if ($action === 'eliminar_reporte') {
+            $id_repor = isset($_POST['id_repor']) ? (int)$_POST['id_repor'] : 0;
+            if ($id_repor <= 0) {
+                throw new Exception('ID de reporte inválido');
+            }
+
+            // Verificar existencia y propietario (usar consulta preparada)
+            $sel = $conn->prepare('SELECT num_doc FROM Reportes WHERE id_repor = ?');
+            if (!$sel) { throw new Exception('Error preparando consulta: ' . $conn->error); }
+            $sel->bind_param('i', $id_repor);
+            $sel->execute();
+            $res = $sel->get_result();
+            if (!$res || !$res->num_rows) {
+                throw new Exception('Reporte no encontrado');
+            }
+            $rowRep = $res->fetch_assoc();
+            $sel->close();
+            $creador = $rowRep['num_doc'];
+            $actual = $usuario['num_doc'] ?? null;
+            $rolActual = $usuario['rol'] ?? '';
+
+            if ($actual === null) {
+                throw new Exception('Usuario no válido');
+            }
+
+            // Regla: el creador puede eliminar su propio reporte; solo admin puede eliminar reportes de otros usuarios
+            if ($creador != $actual && $rolActual !== 'admin') {
+                throw new Exception('FORBIDDEN: No autorizado para eliminar este reporte');
+            }
+
+            $stmtDel = $conn->prepare('DELETE FROM Reportes WHERE id_repor = ?');
+            if (!$stmtDel) { throw new Exception('Error preparando eliminación: ' . $conn->error); }
+            $stmtDel->bind_param('i', $id_repor);
+            $stmtDel->execute();
+            $af = $conn->affected_rows;
+            $stmtDel->close();
+            if ($af <= 0) {
+                throw new Exception('No se eliminó ningún registro (puede que ya no exista)');
+            }
+
+            // Registrar en historial solo para admin y coordinador
+            if (in_array($rolActual, ['admin','coordinador'])) {
+                $usuarioNombre = $usuario['nombres'] ?? $usuario['nombre'] ?? ($usuario['name'] ?? 'Usuario');
+                $detalles = json_encode(['id_repor' => $id_repor]);
+                @$conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Reporte', $id_repor, 'eliminar', '".$conn->real_escape_string($usuarioNombre)."', '".$conn->real_escape_string($rolActual)."', '".$conn->real_escape_string($detalles)."')");
+            }
+
+            ob_clean();
+            echo json_encode(['success' => true, 'id_repor' => $id_repor]);
+            exit;
+        }
+
+        // Mapear acciones directas a tipo_reporte para reutilizar el switch
+        if (in_array($action, [
+            'obtener_kpis',
+            'obtener_datos_graficos',
+            'informe_salidas_avanzado',
+            'kpis_rotacion',
+            'pedidos_sugeridos',
+            'kpis_avanzados_bi'
+        ], true)) {
+            $_POST['tipo_reporte'] = $action;
+        }
         $tipo_reporte = $_POST['tipo_reporte'] ?? '';
         $datos = [];
         
@@ -211,6 +282,7 @@ if (isset($_POST['action'])) {
                         HAVING total_productos > 0
                         ORDER BY total_productos DESC";
                 $result = $conn->query($sql);
+                if (!$result) { throw new Exception('Error en gráfico categorías: ' . $conn->error); }
                 $graficos['categorias'] = $result->fetch_all(MYSQLI_ASSOC);
                 
                 // Datos para gráfico de niveles de stock
@@ -221,6 +293,7 @@ if (isset($_POST['action'])) {
                         SUM(CASE WHEN CAST(stock AS UNSIGNED) > 30 THEN 1 ELSE 0 END) as alto
                         FROM Productos";
                 $result = $conn->query($sql);
+                if (!$result) { throw new Exception('Error en gráfico niveles stock: ' . $conn->error); }
                 $graficos['stock_niveles'] = $result->fetch_assoc();
                 
                 // Datos para gráfico de top productos vendidos
@@ -233,6 +306,7 @@ if (isset($_POST['action'])) {
                         ORDER BY total_vendido DESC
                         LIMIT 10";
                 $result = $conn->query($sql);
+                if (!$result) { throw new Exception('Error en gráfico top productos: ' . $conn->error); }
                 $graficos['top_productos'] = $result->fetch_all(MYSQLI_ASSOC);
                 
                 $output = json_encode(['success' => true, 'graficos' => $graficos]);
@@ -459,6 +533,20 @@ if (isset($_POST['action'])) {
             default:
                 throw new Exception('Tipo de reporte no válido: ' . $tipo_reporte);
         }
+
+        // Si llegamos aquí y existe $sql, ejecutar la consulta genérica y devolver datos
+        if (isset($sql) && is_string($sql) && $sql !== '') {
+            $result = $conn->query($sql);
+            if (!$result) {
+                throw new Exception('Error ejecutando reporte: ' . $conn->error);
+            }
+            // Obtener todos los registros
+            $datos = $result->fetch_all(MYSQLI_ASSOC);
+            $output = json_encode(['success' => true, 'tipo' => $tipo_reporte, 'datos' => $datos]);
+            ob_clean();
+            echo $output;
+            exit;
+        }
         
     } catch (Exception $e) {
         // Limpiar COMPLETAMENTE cualquier salida acumulada
@@ -484,9 +572,13 @@ if (isset($_POST['action'])) {
         exit;
     }
     
-    // Enviar output limpio y terminar
+    // Enviar output limpio y terminar (garantizar cuerpo no vacío)
     $output = ob_get_clean();
-    echo $output;
+    if ($output === null || trim($output) === '') {
+        echo json_encode(['success' => false, 'error' => 'Sin salida del servidor']);
+    } else {
+        echo $output;
+    }
     exit;
 }
 ?>
@@ -496,7 +588,7 @@ if (isset($_POST['action'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes Inteligentes - Inventixor</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="public/css/responsive-sidebar.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
@@ -1275,6 +1367,9 @@ if (isset($_POST['action'])) {
             <!-- Summary Cards -->
             <div id="summaryCards" class="summary-cards"></div>
 
+            <!-- Contenedor dinámico para reportes especializados (salidas/rotación/pedidos) -->
+            <div id="tableContainer" class="mt-3"></div>
+
             <!-- Tabla de Resultados -->
             <div class="table-responsive">
                 <table id="resultTable" class="table result-table">
@@ -1288,8 +1383,27 @@ if (isset($_POST['action'])) {
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="public/js/notifications.js"></script>
     <script>
+        // Helper de notificaciones (toast/alert)
+        function showToast(message, type = 'info', autoHideMs = 4000) {
+            const color = type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'info';
+            const icon = color==='success'?'fa-check-circle':color==='danger'?'fa-times-circle':color==='warning'?'fa-exclamation-triangle':'fa-info-circle';
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${color} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 360px; box-shadow: 0 6px 20px rgba(0,0,0,.15)';
+            toast.innerHTML = `
+                <div class="d-flex align-items-start">
+                  <div class="me-2"><i class="fas ${icon}"></i></div>
+                  <div style="flex:1">${message}</div>
+                  <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+                </div>`;
+            document.body.appendChild(toast);
+            if (autoHideMs > 0) {
+                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, autoHideMs);
+            }
+        }
         let currentReportType = '';
         let currentReportData = [];
         
@@ -1387,12 +1501,12 @@ if (isset($_POST['action'])) {
                         mostrarResultados(data);
                     }
                 } else {
-                    alert('Error generando reporte: ' + data.error);
+                    showToast('Error generando reporte: ' + (data.error || 'Desconocido'), 'error');
                 }
             })
             .catch(error => {
                 document.getElementById('loadingSpinner').style.display = 'none';
-                alert('Error de conexión: ' + error.message);
+                showToast('Error de conexión: ' + error.message, 'error');
             });
         }
 
@@ -1422,7 +1536,7 @@ if (isset($_POST['action'])) {
                 generarTabla(data.datos);
                 document.getElementById('resultContainer').style.display = 'block';
             } else {
-                alert('No se encontraron datos para este reporte');
+                showToast('No se encontraron datos para este reporte', 'warning');
             }
         }
 
@@ -1476,45 +1590,92 @@ if (isset($_POST['action'])) {
             const tableBody = document.getElementById('tableBody');
             
             // Generar headers
+            // Determinar si se debe mostrar la columna de Acciones (existe id_repor y num_doc en alguna fila)
+            const addActions = datos.some(r => ('id_repor' in r) && ('num_doc' in r));
+
             tableHeaders.innerHTML = '<tr>' + headers.map(header => 
                 `<th>${header}</th>`
-            ).join('') + '</tr>';
+            ).join('') + (addActions ? '<th>Acciones</th>' : '') + '</tr>';
             
             // Generar filas
-            tableBody.innerHTML = datos.map(row => 
-                '<tr>' + headers.map(header => {
+            // Obtener datos de sesión PHP para rol y usuario actual
+            const usuarioActual = <?php echo json_encode($usuario); ?>;
+            const esAdmin = usuarioActual.rol === 'admin';
+            // Usar num_doc como identificador principal del usuario; fallback a id
+            const idUsuarioActual = (usuarioActual && (usuarioActual.num_doc || usuarioActual.id || usuarioActual.user_id)) ?? null;
+
+            tableBody.innerHTML = datos.map(row => {
+                let rowHtml = '';
+                rowHtml += headers.map(header => {
                     let cellValue = row[header] || '';
-                    
+
                     // Formatear valores especiales
                     if (header.includes('Stock') && !isNaN(cellValue)) {
                         cellValue = parseInt(cellValue).toLocaleString();
                     }
-                    
+
                     if (header === 'Nivel Stock' || header === 'Estado') {
                         const statusClass = `status-${cellValue.toLowerCase()}`;
                         cellValue = `<span class="status-badge ${statusClass}">${cellValue}</span>`;
                     }
-                    
+
                     if (header === 'Fecha' && cellValue.includes('-')) {
                         const date = new Date(cellValue);
                         cellValue = date.toLocaleDateString('es-ES') + ' ' + date.toLocaleTimeString('es-ES');
                     }
-                    
+
                     return `<td>${cellValue}</td>`;
-                }).join('') + '</tr>'
-            ).join('');
+                }).join('');
+
+                // Mostrar columna de acciones solo si fue agregada en el encabezado
+                const tieneEstructuraReporte = ('id_repor' in row) && ('num_doc' in row);
+                if (typeof addActions !== 'undefined' && addActions) {
+                    if (tieneEstructuraReporte) {
+                        const esCreador = String(row['num_doc']) === String(idUsuarioActual);
+                        if (esAdmin || esCreador) {
+                            rowHtml += `<td style="white-space:nowrap"><button class='btn btn-danger btn-sm' onclick='eliminarReporte(${row['id_repor']})'><i class='fas fa-trash me-1'></i>Eliminar</button></td>`;
+                        } else {
+                            rowHtml += `<td></td>`;
+                        }
+                    } else {
+                        // Alinear filas sin estructura de reporte con la columna Acciones vacía
+                        rowHtml += `<td></td>`;
+                    }
+                }
+                return `<tr>${rowHtml}</tr>`;
+            }).join('');
+        }
+
+        // Eliminar reporte guardado
+        function eliminarReporte(idRepor) {
+            if (!confirm('¿Seguro que deseas eliminar este reporte?')) return;
+            const form = new FormData();
+            form.append('action', 'eliminar_reporte');
+            form.append('id_repor', idRepor);
+            fetch('reportes_inteligentes.php', { method: 'POST', body: form })
+                .then(r => r.text()).then(text => {
+                    let data; try { data = JSON.parse(text); } catch(e){ throw new Error(text); }
+                    if (!data.success) throw new Error(data.error || 'No se pudo eliminar');
+                    // Remover fila correspondiente
+                    const btn = document.querySelector(`button[onclick="eliminarReporte(${idRepor})"]`);
+                    if (btn) {
+                        const tr = btn.closest('tr');
+                        if (tr) tr.remove();
+                    }
+                })
+                .catch(err => showToast('Error: ' + err.message, 'error'));
         }
 
         function exportarReporte(formato) {
             if (currentReportData.length === 0) {
-                alert('No hay datos para exportar');
+                showToast('No hay datos para exportar', 'warning');
                 return;
             }
             
             if (formato === 'csv') {
                 exportarCSV();
             } else if (formato === 'excel') {
-                alert('Exportación a Excel en desarrollo. Use CSV por el momento.');
+                showToast('Exportación a Excel en desarrollo. Use CSV por el momento.', 'info');
             }
         }
 

@@ -184,7 +184,7 @@ $stats = $stats_result->fetch_assoc();
     <title>Gestión de Usuarios - InventiXor</title>
     
     <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -1007,7 +1007,9 @@ $stats = $stats_result->fetch_assoc();
     </div>
 
     <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Toast notifications -->
+    <script src="public/js/notifications.js"></script>
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     
@@ -1146,11 +1148,14 @@ $stats = $stats_result->fetch_assoc();
 
         // Función para mostrar alertas
         function showAlert(message, type) {
-            // Remover alertas existentes
+            if (typeof showToast === 'function') {
+                const map = { success: 'success', danger: 'error', warning: 'warning', info: 'info' };
+                showToast(message, map[type] || 'info');
+                return;
+            }
+            // Fallback simple si no está disponible showToast
             const existingAlerts = document.querySelectorAll('.custom-alert');
             existingAlerts.forEach(alert => alert.remove());
-            
-            // Crear nueva alerta
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} alert-dismissible fade show custom-alert`;
             alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
@@ -1159,15 +1164,8 @@ $stats = $stats_result->fetch_assoc();
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            
             document.body.appendChild(alertDiv);
-            
-            // Auto-remover después de 5 segundos
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.remove();
-                }
-            }, 5000);
+            setTimeout(() => { alertDiv.remove(); }, 5000);
         }
 
         // Manejo de filtros en tiempo real

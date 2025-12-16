@@ -248,6 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar_salida'])) 
                     $stmt_hist->close();
                 }
 
+                $id_salida = $db->conn->insert_id;
                 $producto_nombre = $producto['nombre'];
                 header("Location: salidas.php?action=create&id=$id_salida&producto=" . urlencode($producto_nombre));
                 exit;
@@ -261,6 +262,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registrar_salida'])) 
 }
 
 // Mensajes
+// Mostrar detalles de salida
+if (isset($_GET['ver'])) {
+    $id_salida = intval($_GET['ver']);
+    $stmt = $db->conn->prepare("SELECT s.*, p.nombre as producto_nombre, p.stock as stock_actual, u.nombres as usuario_nombres FROM Salidas s JOIN Productos p ON s.id_prod = p.id_prod LEFT JOIN users u ON p.num_doc = u.num_doc WHERE s.id_salida = ?");
+    $stmt->bind_param('i', $id_salida);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $detalle = $result->fetch_assoc();
+    $stmt->close();
+    // Historial de salidas del producto
+    $historial = [];
+    if ($detalle) {
+        $stmt2 = $db->conn->prepare("SELECT s.*, u.nombres as usuario_nombres FROM Salidas s LEFT JOIN users u ON s.id_prod = u.num_doc WHERE s.id_prod = ? ORDER BY s.fecha_hora DESC");
+        $stmt2->bind_param('i', $detalle['id_prod']);
+        $stmt2->execute();
+        $result2 = $stmt2->get_result();
+        while ($row = $result2->fetch_assoc()) {
+            $historial[] = $row;
+        }
+        $stmt2->close();
+    }
+}
 if (isset($_GET['msg'])) {
     switch ($_GET['msg']) {
         case 'registrado':
@@ -299,6 +322,11 @@ $sql = "SELECT s.id_salida, s.cantidad, s.tipo_salida, s.observacion, s.fecha_ho
 $where_conditions = [];
 $params = [];
 $types = '';
+
+// Filtrar por salidas del día actual por defecto
+if (empty($filtro_fecha_desde) && empty($filtro_fecha_hasta) && (!isset($_GET['historial']) || $_GET['historial'] != '1')) {
+    $where_conditions[] = "DATE(s.fecha_hora) = CURDATE()";
+}
 
 if ($filtro_producto) {
     $where_conditions[] = "p.nombre LIKE ?";
@@ -360,7 +388,7 @@ $stats = $db->conn->query("SELECT
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Salidas - Inventixor</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="public/css/style.css">
@@ -1059,7 +1087,7 @@ $stats = $db->conn->query("SELECT
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Sistema de Notificaciones -->
     <script src="public/js/notifications.js"></script>
@@ -1151,7 +1179,7 @@ $stats = $db->conn->query("SELECT
             const motivo = document.getElementById('retornoMotivo').value;
             
             if (!motivo.trim()) {
-                alert('Debe especificar el motivo del retorno.');
+                if (typeof showToast === 'function') { showToast('Debe especificar el motivo del retorno.', 'warning'); } else { alert('Debe especificar el motivo del retorno.'); }
                 return;
             }
             
@@ -1167,13 +1195,13 @@ $stats = $db->conn->query("SELECT
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Solicitud enviada correctamente a coordinadores y administradores.');
+                    if (typeof showToast === 'function') { showToast('Solicitud enviada correctamente a coordinadores y administradores.', 'success'); } else { alert('Solicitud enviada correctamente a coordinadores y administradores.'); }
                     bootstrap.Modal.getInstance(document.getElementById('retornoModal')).hide();
                 } else {
-                    alert('Error: ' + (data.error || 'No se pudo enviar la solicitud.'));
+                    if (typeof showToast === 'function') { showToast('Error: ' + (data.error || 'No se pudo enviar la solicitud.'), 'error'); } else { alert('Error: ' + (data.error || 'No se pudo enviar la solicitud.')); }
                 }
             })
-            .catch(() => alert('Error de red al enviar la solicitud.'));
+            .catch(() => { if (typeof showToast === 'function') { showToast('Error de red al enviar la solicitud.', 'error'); } else { alert('Error de red al enviar la solicitud.'); } });
         }
         
         // Confirmar eliminación

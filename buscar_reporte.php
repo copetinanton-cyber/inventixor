@@ -16,7 +16,7 @@ echo "<!DOCTYPE html>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Localizador de Reportes - Inventixor</title>
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css' rel='stylesheet'>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'>
     <style>
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -292,13 +292,19 @@ echo "
 </div>
 </div>
 
+<script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js'></script>
+<script src='public/js/notifications.js'></script>
 <script>
 function exportarReporte(id, formato) {
     window.location.href = 'reportes.php?exportar=individual&id=' + id + '&formato=' + formato;
 }
 
 function mostrarDetalles(id) {
-    alert('Funcionalidad de detalles en desarrollo. ID: ' + id);
+    if (typeof showToast === 'function') {
+        showToast('Funcionalidad de detalles en desarrollo. ID: ' + id, 'info');
+    } else {
+        alert('Funcionalidad de detalles en desarrollo. ID: ' + id);
+    }
 }
 </script>
 

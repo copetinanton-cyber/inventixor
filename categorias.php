@@ -40,13 +40,6 @@ if (isset($_GET['eliminar'])) {
         $stmt->bind_param('i', $id_categoria);
         $stmt->execute();
         $stmt->close();
-        if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-            $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $rol = $_SESSION['rol'];
-            $detalles = json_encode($cat);
-            $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $id_categoria, 'eliminar', '$usuario', '$rol', '$detalles')");
-        }
-        
         // Generar notificación automática para todos los usuarios
         $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
         $sistemaNotificaciones->notificarEliminacionCategoria($cat, $usuario_nombre);
@@ -68,12 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_categoria']
     $stmt->bind_param('ssi', $nombre, $descripcion, $id);
     $stmt->execute();
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(['antes'=>$old,'despues'=>compact('nombre','descripcion')]);
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $id, 'editar', '$usuario', '$rol', '$detalles')");
-    }
     header('Location: categorias.php?msg=modificado');
     exit;
 }
@@ -87,12 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_categoria'])) {
     $stmt->execute();
     $nuevo_id = $db->conn->insert_id;
     $stmt->close();
-    if (in_array($_SESSION['rol'], ['admin', 'coordinador'])) {
-        $usuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-        $rol = $_SESSION['rol'];
-        $detalles = json_encode(compact('nombre','descripcion'));
-        $db->conn->query("INSERT INTO HistorialCRUD (entidad, id_entidad, accion, usuario, rol, detalles) VALUES ('Categoria', $nuevo_id, 'crear', '$usuario', '$rol', '$detalles')");
-    }
     
     // Generar notificación automática para todos los usuarios
     $usuario_nombre = $_SESSION['user']['nombre'] ?? $_SESSION['user']['name'] ?? 'Usuario';
@@ -160,14 +141,24 @@ if (isset($_GET['msg'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Sistema de gestión de categorías - Inventixor">
     <title>Gestión de Categorías - Inventixor</title>
+    
+    <!-- Preload de fuentes críticas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Estilos del sistema -->
     <link rel="stylesheet" href="public/css/style.css">
-    <link rel="stylesheet" href="public/css/responsive-sidebar.css">
+    <link rel="stylesheet" href="public/css/responsive.css">
     
     <style>
         
@@ -587,10 +578,10 @@ if (isset($_GET['msg'])) {
     <script src="public/js/auto-notifications.js"></script>
     
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Sistema Responsive -->
-    <script src="public/js/responsive-sidebar.js"></script>
+    <script src="public/js/responsive.js"></script>
     <script>
         // Marcar como activo el menú de categorías
         setActiveMenuItem('categorias.php');

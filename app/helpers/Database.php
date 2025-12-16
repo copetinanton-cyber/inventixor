@@ -13,5 +13,9 @@ class Database {
             die('Error de conexión: ' . $this->conn->connect_error);
         }
     }
+
+    public function getConnection() {
+        return $this->conn;
+    }
 }
 ?>
